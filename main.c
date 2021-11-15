@@ -36,6 +36,8 @@ int main(void)
 					NULL, "Music", &ss, NULL, NULL, NULL);
 	assert(s && "PulseAudio connection");
 
+	printf("size: %zu.\n", buffer_size);
+
 	while(1) {
 		if(pa_simple_write(s, (void*)buffer, buffer_size, &err))
 			error_handle("Write fail", err);
@@ -43,8 +45,6 @@ int main(void)
 		if(pa_simple_drain(s, &err))
 			error_handle("Drain fail", err);
 	}
-
-	printf("size: %zu.\n", buffer_size);
 
 	pa_simple_free(s);
 	printf("OK\n");
