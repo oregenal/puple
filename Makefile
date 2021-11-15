@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -Werror -std=c11 -pedantic
 LIBS=-lpulse-simple
-BIN=pupl
+BIN=puple
 PKGS=libpulse-simple
 
 $(BIN):main.c
