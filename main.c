@@ -8,25 +8,30 @@
 #include <pulse/simple.h>
 #include <pulse/error.h>
 
-#define BUFFER_SIZE 1024 * 1000
-
 void error_handle(const char *message, int err) {
 		fprintf(stderr, "%s: %s\n", message, pa_strerror(err));
 }
 
-#define FILE_NAME "./speech.wav"
-
-int main(void)
+int main(int argc, char **argv)
 {
+	char *file_name = NULL;
+	if(argc > 1) {
+		++argv;
+		file_name = *argv;
+	} else {
+		fprintf(stderr, "No file specified.\n");
+		printf("Usage %s </path/to/file.wav>\n", *argv);
+		exit(EXIT_FAILURE);
+	}
+
 	struct stat file_stat;
-	if(stat(FILE_NAME, &file_stat)) {
+	if(stat(file_name, &file_stat)) {
 		perror("File error");
 		exit(EXIT_FAILURE);
 	}
 
-	FILE *audio_file = fopen(FILE_NAME, "r");
+	FILE *audio_file = fopen(file_name, "r");
 	char *file_buffer = malloc(sizeof(char) * file_stat.st_size);
-
 	if(fread((void*)file_buffer, 1, file_stat.st_size, audio_file) != file_stat.st_size) {
 		fprintf(stderr, "File read error.\n");
 		exit(EXIT_FAILURE);
