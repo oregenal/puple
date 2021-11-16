@@ -72,8 +72,6 @@ int main(void)
 					NULL, "Music", &ss, NULL, NULL, NULL);
 	assert(s && "PulseAudio connection");
 
-	printf("size: %zu.\n", audio_buffer_size);
-
 	char *audio_data = file_buffer + 44;
 
 	if(pa_simple_write(s, (void*)audio_data, audio_buffer_size, &err))
