@@ -5,5 +5,4 @@ BIN=puple
 PKGS=libpulse-simple
 
 $(BIN):main.c
-	$(CC) $(CFLAGS) `pkg-config --cflags $(PKGS)` \
-		-o $(BIN) $< $(LIBS) `pkg-config --libs $(PKGS)`
+	$(CC) $(CFLAGS) `pkg-config --cflags $(PKGS)` -o $(BIN) $< $(LIBS) `pkg-config --libs $(PKGS)`
