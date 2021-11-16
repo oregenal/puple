@@ -48,25 +48,25 @@ int main(void)
 	};
 	printf("Readed from file: %zu.\n", file_stat.st_size);
 
-	return 0;
+	size_t audio_buffer_size = *((int*)(file_buffer + 40));
+	printf("Audio Data size: %zu.\n", audio_buffer_size);
 
-	char audio_buffer[BUFFER_SIZE];
-	size_t audio_buffer_size = sizeof(audio_buffer);
 	int err;
 	pa_simple *s;
 	pa_sample_spec ss;
 
 	ss.format = PA_SAMPLE_S16LE;
-	ss.channels = 2;
-	ss.rate = 44100;
+	ss.channels = *((char*)(file_buffer + 22));
+	ss.rate = *((int*)(file_buffer + 24));
+	printf("Number of channels: %d, Sample rate %d.\n", ss.channels, ss.rate);
 
-	s = pa_simple_new(NULL, "puple", PA_STREAM_RECORD,
+	/*s = pa_simple_new(NULL, "puple", PA_STREAM_RECORD,
 					NULL, "Music", &ss, NULL, NULL, NULL);
 	assert(s && "PulseAudio connection");
 
 	if(pa_simple_read(s, (void*)audio_buffer, audio_buffer_size, &err))
 		error_handle("Read fail", err);
-	pa_simple_free(s);
+	pa_simple_free(s); */
 
 	s = pa_simple_new(NULL, "puple", PA_STREAM_PLAYBACK,
 					NULL, "Music", &ss, NULL, NULL, NULL);
@@ -74,13 +74,13 @@ int main(void)
 
 	printf("size: %zu.\n", audio_buffer_size);
 
-	while(1) {
-		if(pa_simple_write(s, (void*)audio_buffer, audio_buffer_size, &err))
-			error_handle("Write fail", err);
+	char *audio_data = file_buffer + 44;
 
-		if(pa_simple_drain(s, &err))
-			error_handle("Drain fail", err);
-	}
+	if(pa_simple_write(s, (void*)audio_data, audio_buffer_size, &err))
+		error_handle("Write fail", err);
+
+	if(pa_simple_drain(s, &err))
+		error_handle("Drain fail", err);
 
 	pa_simple_free(s);
 	printf("OK\n");
