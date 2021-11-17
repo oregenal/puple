@@ -44,16 +44,16 @@ int main(int argc, char **argv)
 
 	if(strncmp(file_buffer, "RIFF", 4) != 0
 		&& strncmp((file_buffer + 8), "WAVE", 4) != 0) {
-		fprintf(stderr, "Unsuported file format.\n");
+		fprintf(stderr, "Unsupported file format.\n");
 		exit(EXIT_FAILURE);
 	};
 
 	if(*(file_buffer + 20) != 0x01) {
-		fprintf(stderr, "Unsuported compression type.\n");
+		fprintf(stderr, "Unsupported compression type.\n");
 		exit(EXIT_FAILURE);
 	}
 
-	size_t audio_buffer_size = *((int*)(file_buffer + 40));
+	size_t audio_buffer_size = *(int*)(file_buffer + 40);
 
 	int err;
 	pa_simple *s;
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 			ss.format = PA_SAMPLE_S16LE;
 			break;
 		default:
-			fprintf(stderr, "Unsupotred bitrate.\n");
+			fprintf(stderr, "Unsupported bitrate.\n");
 			exit(EXIT_FAILURE);
 	} 
 
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 	s = pa_simple_new(NULL, "puple", PA_STREAM_PLAYBACK,
 					NULL, "Music", &ss, NULL, NULL, &err);
 	if(!s) {
-		fprintf(stderr, "Pulse connectiion error: %s.\n", pa_strerror(err));
+		error_handle("Pulse connectiion error", err);
 		exit(EXIT_FAILURE);
 	}
 
