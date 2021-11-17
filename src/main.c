@@ -40,13 +40,23 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
+	if(S_ISDIR(file_stat.st_mode)) {
+		/* TODO: Implement dir play */
+		fprintf(stderr, "Dir play not implemented yet.\n");
+		exit(EXIT_FAILURE);
+	} else if(!S_ISREG(file_stat.st_mode)) {
+		fprintf(stderr, "Not a regular file");
+		exit(EXIT_FAILURE);
+	}
+
 	FILE *audio_file = fopen(file_name, "rb");
 	if(!audio_file) {
 		perror("File open error.");
 		exit(EXIT_FAILURE);
 	}
 	char *file_buffer = malloc(sizeof(char) * file_stat.st_size);
-	if(fread((void*)file_buffer, 1, file_stat.st_size, audio_file) != file_stat.st_size) {
+	if(fread((void*)file_buffer, 1, file_stat.st_size, audio_file) 
+			!= file_stat.st_size) {
 		fprintf(stderr, "File read error.\n");
 		exit(EXIT_FAILURE);
 	}
@@ -62,7 +72,9 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	int audio_data_position = str_search_ptrn("data", file_buffer, file_stat.st_size);
+	int audio_data_position = 
+		str_search_ptrn("data", file_buffer, file_stat.st_size);
+
 	if(!audio_data_position) {
 		fprintf(stderr, "No audio data found.\n");
 		exit(EXIT_FAILURE);
@@ -101,7 +113,8 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if(pa_simple_write(s, (void*)(file_buffer + audio_data_position + 8), audio_buffer_size, &err))
+	if(pa_simple_write(s, (void*)(file_buffer + audio_data_position + 8), 
+				audio_buffer_size, &err))
 		error_handle("Write fail", err);
 
 	if(pa_simple_drain(s, &err))
