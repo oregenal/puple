@@ -9,6 +9,8 @@
 #include <pulse/simple.h>
 #include <pulse/error.h>
 
+#include "str_search_ptrn.h"
+
 void error_handle(const char *message, int err)
 {
 		fprintf(stderr, "%s: %s\n", message, pa_strerror(err));
@@ -56,11 +58,11 @@ int main(int argc, char **argv)
 
 	int fmt_len = *(int*)(file_buffer + 16);
 
-	/* char *audio_data = strstr((char *)file_buffer, "data");
-	if(!audio_data) {
+	int audio_data_position = str_search_ptrn("data", (char *)file_buffer, file_stat.st_size);
+	if(!audio_data_position) {
 		fprintf(stderr, "No audio data found.\n");
 		exit(EXIT_FAILURE);
-	} */
+	}
 
 	size_t audio_buffer_size = *(int*)(file_buffer + 20 + fmt_len + 4);
 
@@ -94,7 +96,7 @@ int main(int argc, char **argv)
 
 	char *audio_data = file_buffer + 44;
 
-	if(pa_simple_write(s, (void*)(audio_data + 4), audio_buffer_size, &err))
+	if(pa_simple_write(s, (void*)(audio_data + audio_data_position), audio_buffer_size, &err))
 		error_handle("Write fail", err);
 
 	if(pa_simple_drain(s, &err))
