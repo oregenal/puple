@@ -11,6 +11,12 @@
 
 #include "str_search_ptrn.h"
 
+enum format {
+	F8BIT = 8,
+	F16BIT = 16,
+	F24BIT = 24,
+};
+
 void error_handle(const char *message, int err)
 {
 		fprintf(stderr, "%s: %s\n", message, pa_strerror(err));
@@ -34,7 +40,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	FILE *audio_file = fopen(file_name, "r");
+	FILE *audio_file = fopen(file_name, "rb");
 	if(!audio_file) {
 		perror("File open error.");
 		exit(EXIT_FAILURE);
@@ -56,26 +62,27 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	int fmt_len = *(int*)(file_buffer + 16);
-
-	int audio_data_position = str_search_ptrn("data", (char *)file_buffer, file_stat.st_size);
+	int audio_data_position = str_search_ptrn("data", file_buffer, file_stat.st_size);
 	if(!audio_data_position) {
 		fprintf(stderr, "No audio data found.\n");
 		exit(EXIT_FAILURE);
 	}
 
-	size_t audio_buffer_size = *(int*)(file_buffer + 20 + fmt_len + 4);
+	size_t audio_buffer_size = *(int*)(file_buffer + audio_data_position + 4);
 
 	int err;
 	pa_simple *s;
 	pa_sample_spec ss;
 
 	switch(*(short*)(file_buffer + 34)) {
-		case 8: 
+		case F8BIT: 
 			ss.format = PA_SAMPLE_U8;
 			break;
-		case 16:
+		case F16BIT:
 			ss.format = PA_SAMPLE_S16LE;
+			break;
+		case F24BIT:
+			ss.format = PA_SAMPLE_S24LE;
 			break;
 		default:
 			fprintf(stderr, "Unsupported bitrate.\n");
@@ -94,9 +101,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	char *audio_data = file_buffer + 44;
-
-	if(pa_simple_write(s, (void*)(audio_data + audio_data_position), audio_buffer_size, &err))
+	if(pa_simple_write(s, (void*)(file_buffer + audio_data_position + 8), audio_buffer_size, &err))
 		error_handle("Write fail", err);
 
 	if(pa_simple_drain(s, &err))
