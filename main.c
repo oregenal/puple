@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <errno.h>
+#include <string.h>
 
 #include <sys/stat.h>
 
@@ -31,28 +32,56 @@ int main(int argc, char **argv)
 	}
 
 	FILE *audio_file = fopen(file_name, "r");
+	if(!audio_file) {
+		perror("File open error.");
+		exit(EXIT_FAILURE);
+	}
 	char *file_buffer = malloc(sizeof(char) * file_stat.st_size);
 	if(fread((void*)file_buffer, 1, file_stat.st_size, audio_file) != file_stat.st_size) {
 		fprintf(stderr, "File read error.\n");
 		exit(EXIT_FAILURE);
 	};
-	printf("Readed from file: %zu.\n", file_stat.st_size);
+
+	if(strncmp(file_buffer, "RIFF", 4) != 0
+		&& strncmp((file_buffer + 8), "WAVE", 4) != 0) {
+		fprintf(stderr, "Unsuported file format.\n");
+		exit(EXIT_FAILURE);
+	};
+
+	if(*(file_buffer + 20) != 0x01) {
+		fprintf(stderr, "Unsuported compression type.\n");
+		exit(EXIT_FAILURE);
+	}
 
 	size_t audio_buffer_size = *((int*)(file_buffer + 40));
-	printf("Audio Data size: %zu.\n", audio_buffer_size);
 
 	int err;
 	pa_simple *s;
 	pa_sample_spec ss;
 
-	ss.format = PA_SAMPLE_S16LE;
+	switch(*(short*)(file_buffer + 34)) {
+		case 8: 
+			ss.format = PA_SAMPLE_U8;
+			break;
+		case 16:
+			ss.format = PA_SAMPLE_S16LE;
+			break;
+		default:
+			fprintf(stderr, "Unsupotred bitrate.\n");
+			exit(EXIT_FAILURE);
+	} 
+
 	ss.channels = *((char*)(file_buffer + 22));
 	ss.rate = *((int*)(file_buffer + 24));
-	printf("Number of channels: %d, Sample rate %d.\n", ss.channels, ss.rate);
+	printf("Number of channels: %d, Sample rate %d. Bitrate: %d\n", 
+			ss.channels, ss.rate, *(short*)(file_buffer + 34));
 
 	s = pa_simple_new(NULL, "puple", PA_STREAM_PLAYBACK,
-					NULL, "Music", &ss, NULL, NULL, NULL);
-	assert(s && "PulseAudio connection");
+					NULL, "Music", &ss, NULL, NULL, &err);
+	if(!s) {
+		fprintf(stderr, "Pulse connectiion error: %s.\n", pa_strerror(err));
+		exit(EXIT_FAILURE);
+	}
 
 	char *audio_data = file_buffer + 44;
 
@@ -63,6 +92,9 @@ int main(int argc, char **argv)
 		error_handle("Drain fail", err);
 
 	pa_simple_free(s);
+	free(file_buffer);
+	fclose(audio_file);
+
 	printf("OK\n");
 	return 0;
 }
