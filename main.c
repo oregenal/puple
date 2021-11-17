@@ -9,7 +9,8 @@
 #include <pulse/simple.h>
 #include <pulse/error.h>
 
-void error_handle(const char *message, int err) {
+void error_handle(const char *message, int err)
+{
 		fprintf(stderr, "%s: %s\n", message, pa_strerror(err));
 }
 
