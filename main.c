@@ -41,20 +41,28 @@ int main(int argc, char **argv)
 	if(fread((void*)file_buffer, 1, file_stat.st_size, audio_file) != file_stat.st_size) {
 		fprintf(stderr, "File read error.\n");
 		exit(EXIT_FAILURE);
-	};
+	}
 
 	if(strncmp(file_buffer, "RIFF", 4) != 0
 		&& strncmp((file_buffer + 8), "WAVE", 4) != 0) {
 		fprintf(stderr, "Unsupported file format.\n");
 		exit(EXIT_FAILURE);
-	};
+	}
 
 	if(*(file_buffer + 20) != 0x01) {
 		fprintf(stderr, "Unsupported compression type.\n");
 		exit(EXIT_FAILURE);
 	}
 
-	size_t audio_buffer_size = *(int*)(file_buffer + 40);
+	int fmt_len = *(int*)(file_buffer + 16);
+
+	/* char *audio_data = strstr((char *)file_buffer, "data");
+	if(!audio_data) {
+		fprintf(stderr, "No audio data found.\n");
+		exit(EXIT_FAILURE);
+	} */
+
+	size_t audio_buffer_size = *(int*)(file_buffer + 20 + fmt_len + 4);
 
 	int err;
 	pa_simple *s;
@@ -86,7 +94,7 @@ int main(int argc, char **argv)
 
 	char *audio_data = file_buffer + 44;
 
-	if(pa_simple_write(s, (void*)audio_data, audio_buffer_size, &err))
+	if(pa_simple_write(s, (void*)(audio_data + 4), audio_buffer_size, &err))
 		error_handle("Write fail", err);
 
 	if(pa_simple_drain(s, &err))
