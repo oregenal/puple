@@ -67,8 +67,11 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if(*(file_buffer + 20) != 0x01) {
-		fprintf(stderr, "Unsupported compression type.\n");
+	uint16_t compression = *(file_buffer + 20);
+	if(compression == 0x01 || compression == 0xfffe) {
+		printf("Compression type: 0x%04hx.\n", compression);
+	} else {
+		fprintf(stderr, "Unsupported compression type: 0x%04hx.\n", compression);
 		exit(EXIT_FAILURE);
 	}
 
@@ -103,7 +106,7 @@ int main(int argc, char **argv)
 
 	ss.channels = *((char*)(file_buffer + 22));
 	ss.rate = *((int*)(file_buffer + 24));
-	printf("Number of channels: %d, Sample rate %d. Bitrate: %d\n", 
+	printf("Number of channels: %d, Sample rate %d. Bitrate: %d.\n", 
 			ss.channels, ss.rate, *(short*)(file_buffer + 34));
 
 	s = pa_simple_new(NULL, "puple", PA_STREAM_PLAYBACK,
