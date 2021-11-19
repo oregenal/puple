@@ -104,8 +104,8 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 	} 
 
-	ss.channels = *((char*)(file_buffer + 22));
-	ss.rate = *((int*)(file_buffer + 24));
+	ss.channels = *(char*)(file_buffer + 22);
+	ss.rate = *(int*)(file_buffer + 24);
 	printf("Number of channels: %d, Sample rate %d. Bitrate: %d.\n", 
 			ss.channels, ss.rate, *(short*)(file_buffer + 34));
 
