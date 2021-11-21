@@ -6,8 +6,9 @@ Simple project to explore PulseAudio.
 
 ## Details
 
-Currently playing most 8, 16, 24 bit WAV files.
-Also you can specify dir name, to play all WAV files in it.
+Currently playing **most** 8, 16, 24 bit `.wav` files.
+Also you can specify dir name, to play all `.wav` files in it.
+
 MP3 support ahead.
 
 ### Usage
