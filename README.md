@@ -6,11 +6,18 @@ Simple project to explore PulseAudio.
 
 ## Details
 
-Currently playing only **some** WAV files.
+Currently playing _most_ 8, 16, 24 bit `.wav` files.
+Also you can specify dir name, to play all `.wav` files in it.
+
 MP3 support ahead.
 
 ### Usage
 
-```console
+```bash
 # ./puple file.wav
+```
+To play all files in dir:
+
+```bash
+# ./puple dir_name/
 ```

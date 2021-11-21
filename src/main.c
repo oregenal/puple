@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <assert.h>
 #include <errno.h>
 #include <string.h>
+#include <dirent.h>
 
 #include <sys/stat.h>
 
@@ -22,48 +24,38 @@ void error_handle(const char *message, int err)
 		fprintf(stderr, "%s: %s\n", message, pa_strerror(err));
 }
 
-int main(int argc, char **argv)
+void play_file(const char *file_name)
 {
-	char *file_name = NULL;
-	if(argc > 1) {
-		++argv;
-		file_name = *argv;
-	} else {
-		fprintf(stderr, "No file specified.\n");
-		printf("Usage %s </path/to/file.wav>\n", *argv);
-		exit(EXIT_FAILURE);
-	}
-
 	struct stat file_stat;
 	if(stat(file_name, &file_stat)) {
 		perror("File error");
+		return;
 		exit(EXIT_FAILURE);
 	}
 
-	if(S_ISDIR(file_stat.st_mode)) {
-		/* TODO: Implement dir play */
-		fprintf(stderr, "Dir play not implemented yet.\n");
-		exit(EXIT_FAILURE);
-	} else if(!S_ISREG(file_stat.st_mode)) {
-		fprintf(stderr, "Not a regular file");
-		exit(EXIT_FAILURE);
+	if(!S_ISREG(file_stat.st_mode)) {
+		fprintf(stderr, "Not a file.\n");
+		return;
 	}
 
 	FILE *audio_file = fopen(file_name, "rb");
 	if(!audio_file) {
 		perror("File open error.");
+		return;
 		exit(EXIT_FAILURE);
 	}
 	char *file_buffer = malloc(sizeof(char) *file_stat.st_size);
 	if(fread((void*)file_buffer, 1, file_stat.st_size, audio_file) 
 			!= file_stat.st_size) {
 		fprintf(stderr, "File read error.\n");
+		return;
 		exit(EXIT_FAILURE);
 	}
 
 	if(strncmp(file_buffer, "RIFF", 4) != 0
 		&& strncmp((file_buffer + 8), "WAVE", 4) != 0) {
 		fprintf(stderr, "Unsupported file format.\n");
+		return;
 		exit(EXIT_FAILURE);
 	}
 
@@ -72,6 +64,7 @@ int main(int argc, char **argv)
 		printf("Compression type: 0x%04hx.\n", compression);
 	} else {
 		fprintf(stderr, "Unsupported compression type: 0x%04hx.\n", compression);
+		return;
 		exit(EXIT_FAILURE);
 	}
 
@@ -80,6 +73,7 @@ int main(int argc, char **argv)
 
 	if(!audio_data_position) {
 		fprintf(stderr, "No audio data found.\n");
+		return;
 		exit(EXIT_FAILURE);
 	}
 
@@ -101,6 +95,7 @@ int main(int argc, char **argv)
 			break;
 		default:
 			fprintf(stderr, "Unsupported bitrate.\n");
+			return;
 			exit(EXIT_FAILURE);
 	} 
 
@@ -113,6 +108,7 @@ int main(int argc, char **argv)
 					NULL, "Music", &ss, NULL, NULL, &err);
 	if(!s) {
 		error_handle("Pulse connectiion error", err);
+		return;
 		exit(EXIT_FAILURE);
 	}
 
@@ -126,6 +122,48 @@ int main(int argc, char **argv)
 	pa_simple_free(s);
 	free(file_buffer);
 	fclose(audio_file);
+}
+
+int main(int argc, char **argv)
+{
+	char *file_name = NULL;
+	if(argc > 1) {
+		++argv;
+		file_name = *argv;
+	} else {
+		fprintf(stderr, "No file specified.\n");
+		printf("Usage %s </path/to/file.wav>\n", *argv);
+		exit(EXIT_FAILURE);
+	}
+
+	struct stat file_stat;
+	if(stat(file_name, &file_stat)) {
+		perror("File error");
+		exit(EXIT_FAILURE);
+	}
+
+	if(S_ISDIR(file_stat.st_mode)) {
+		DIR *dir;
+		struct dirent *dent;
+		dir = opendir(file_name);
+		if(!dir) {
+			perror(file_name);
+			return 1;
+		}
+		while((dent = readdir(dir)) != NULL) {
+			if(str_search_ptrn(".wav", dent->d_name, strlen(dent->d_name)) > 0) {
+				printf("%s\n", dent->d_name);
+				chdir(file_name);
+				play_file(dent->d_name);
+			}
+		}
+		closedir(dir);
+	} else if(S_ISREG(file_stat.st_mode)) {
+		play_file(file_name);
+	} else {
+		fprintf(stderr, "Not a regular file");
+		exit(EXIT_FAILURE);
+	}
 
 	printf("OK\n");
 	return 0;

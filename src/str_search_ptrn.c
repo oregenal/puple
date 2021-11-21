@@ -24,5 +24,9 @@ int str_search_ptrn(const char* pattern, const char *str, int strln) {
 		if(f)
 			break;
 	};
-	return i;
+	if(i == strln) {
+		return -1;
+	} else {
+		return i;
+	}
 }
