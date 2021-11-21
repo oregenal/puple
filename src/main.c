@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 		perror("File open error.");
 		exit(EXIT_FAILURE);
 	}
-	char *file_buffer = malloc(sizeof(char) * file_stat.st_size);
+	char *file_buffer = malloc(sizeof(char) *file_stat.st_size);
 	if(fread((void*)file_buffer, 1, file_stat.st_size, audio_file) 
 			!= file_stat.st_size) {
 		fprintf(stderr, "File read error.\n");
