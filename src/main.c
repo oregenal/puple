@@ -33,6 +33,11 @@ void play_file(const char *file_name)
 		exit(EXIT_FAILURE);
 	}
 
+	if(!S_ISREG(file_stat.st_mode)) {
+		fprintf(stderr, "Not a file.\n");
+		return;
+	}
+
 	FILE *audio_file = fopen(file_name, "rb");
 	if(!audio_file) {
 		perror("File open error.");
