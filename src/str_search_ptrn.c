@@ -22,11 +22,7 @@ int str_search_ptrn(const char* pattern, const char *str, int strln) {
 		f = equal(i, j, pattern, str);
 
 		if(f)
-			break;
+			return i;
 	};
-	if(i == strln) {
-		return -1;
-	} else {
-		return i;
-	}
+	return -1;
 }
