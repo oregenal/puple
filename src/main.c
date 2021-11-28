@@ -17,6 +17,7 @@ enum format {
 	F8BIT = 8,
 	F16BIT = 16,
 	F24BIT = 24,
+	F32BIT = 32,
 };
 
 void error_handle(const char *message, int err)
@@ -93,8 +94,11 @@ void play_file(const char *file_name)
 		case F24BIT:
 			ss.format = PA_SAMPLE_S24LE;
 			break;
+		case F32BIT:
+			ss.format = PA_SAMPLE_FLOAT32LE;
+			break;
 		default:
-			fprintf(stderr, "Unsupported bitrate.\n");
+			fprintf(stderr, "Unsupported bitrate: %hn\n", (short*)(file_buffer + 34));
 			return;
 			exit(EXIT_FAILURE);
 	} 
