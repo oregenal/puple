@@ -15,4 +15,4 @@ $(BIN):$(SRCDIR)/main.c $(OBJDIR)/$(OBJS) $(SRCDIR)/$(HEADERS)
 	$(CC) $(CFLAGS) `pkg-config --cflags $(PKGS)` -o $(BIN) $< $(LIBS) $(OBJDIR)/$(OBJS) `pkg-config --libs $(PKGS)`
 
 $(OBJDIR):
-	@mkdir $@
+	@mkdir -p $@

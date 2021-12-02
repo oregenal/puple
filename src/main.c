@@ -31,7 +31,6 @@ void play_file(const char *file_name)
 	if(stat(file_name, &file_stat)) {
 		perror("File error");
 		return;
-		exit(EXIT_FAILURE);
 	}
 
 	if(!S_ISREG(file_stat.st_mode)) {
@@ -43,21 +42,18 @@ void play_file(const char *file_name)
 	if(!audio_file) {
 		perror("File open error.");
 		return;
-		exit(EXIT_FAILURE);
 	}
 	char *file_buffer = malloc(sizeof(char) *file_stat.st_size);
 	if(fread((void*)file_buffer, 1, file_stat.st_size, audio_file) 
 			!= file_stat.st_size) {
 		fprintf(stderr, "File read error.\n");
 		return;
-		exit(EXIT_FAILURE);
 	}
 
 	if(strncmp(file_buffer, "RIFF", 4) != 0
 		&& strncmp((file_buffer + 8), "WAVE", 4) != 0) {
 		fprintf(stderr, "Unsupported file format.\n");
 		return;
-		exit(EXIT_FAILURE);
 	}
 
 	uint16_t compression = *(file_buffer + 20);
@@ -66,7 +62,6 @@ void play_file(const char *file_name)
 	} else {
 		fprintf(stderr, "Unsupported compression type: 0x%04hx.\n", compression);
 		return;
-		exit(EXIT_FAILURE);
 	}
 
 	int audio_data_position = 
@@ -75,7 +70,6 @@ void play_file(const char *file_name)
 	if(!audio_data_position) {
 		fprintf(stderr, "No audio data found.\n");
 		return;
-		exit(EXIT_FAILURE);
 	}
 
 	size_t audio_buffer_size = *(int*)(file_buffer + audio_data_position + 4);
@@ -100,7 +94,6 @@ void play_file(const char *file_name)
 		default:
 			fprintf(stderr, "Unsupported bitrate: %hn\n", (short*)(file_buffer + 34));
 			return;
-			exit(EXIT_FAILURE);
 	} 
 
 	ss.channels = *(char*)(file_buffer + 22);
@@ -113,7 +106,6 @@ void play_file(const char *file_name)
 	if(!s) {
 		error_handle("Pulse connectiion error", err);
 		return;
-		exit(EXIT_FAILURE);
 	}
 
 	if(pa_simple_write(s, (void*)(file_buffer + audio_data_position + 8), 
