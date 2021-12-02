@@ -60,7 +60,9 @@ void play_wav_file(const char *file_name)
 	if(compression == 0x01 || compression == 0xfffe) {
 		printf("Compression type: 0x%04hx.\n", compression);
 	} else {
-		fprintf(stderr, "Unsupported compression type: 0x%04hx.\n", compression);
+		fprintf(stderr, 
+				"Unsupported compression type: 0x%04hx.\n", 
+				compression);
 		return;
 	}
 
@@ -92,7 +94,9 @@ void play_wav_file(const char *file_name)
 			ss.format = PA_SAMPLE_FLOAT32LE;
 			break;
 		default:
-			fprintf(stderr, "Unsupported bitrate: %hn\n", (short*)(file_buffer + 34));
+			fprintf(stderr, 
+					"Unsupported bitrate: %hn\n", 
+					(short*)(file_buffer + 34));
 			return;
 	} 
 
@@ -147,7 +151,8 @@ int main(int argc, char **argv)
 			return 1;
 		}
 		while((dent = readdir(dir)) != NULL) {
-			if(str_search_ptrn(".wav", dent->d_name, strlen(dent->d_name)) > 0) {
+			if(str_search_ptrn(".wav", 
+								dent->d_name, strlen(dent->d_name)) > 0) {
 				printf("%s\n", dent->d_name);
 				chdir(file_name);
 				play_wav_file(dent->d_name);
