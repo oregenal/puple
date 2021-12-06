@@ -1,18 +1,27 @@
 CC=gcc
 CFLAGS=-Wall -Werror -std=c11 -pedantic -ggdb
 LIBS=-lpulse-simple
-BIN=puple
 PKGS=libpulse-simple
-OBJS=str_search_ptrn.o
-HEADERS=str_search_ptrn.h
+
+BIN=puple
 OBJDIR=obj
 SRCDIR=src
 
-$(OBJDIR)/%.o:$(SRCDIR)/%.c $(SRCDIR)/$(HEADERS) | $(OBJDIR)
+HDRS=$(wildcard $(SRCDIR)/*.h)
+OBJS=$(patsubst $(SRCDIR)/%.h, $(OBJDIR)/%.o, $(HDRS))
+
+.PHONY:default clean
+
+default:$(BIN)
+
+$(OBJDIR)/%.o:$(SRCDIR)/%.c $(SRCDIR)/%.h | $(OBJDIR)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(BIN):$(SRCDIR)/main.c $(OBJDIR)/$(OBJS) $(SRCDIR)/$(HEADERS)
-	$(CC) $(CFLAGS) `pkg-config --cflags $(PKGS)` -o $(BIN) $< $(LIBS) $(OBJDIR)/$(OBJS) `pkg-config --libs $(PKGS)`
+$(BIN):$(SRCDIR)/main.c $(OBJS)
+	$(CC) $(CFLAGS) `pkg-config --cflags $(PKGS)` -o $@ $^ $(LIBS) `pkg-config --libs $(PKGS)`
 
 $(OBJDIR):
 	@mkdir -p $@
+
+clean:
+	rm -rf $(OBJDIR) $(BIN)
