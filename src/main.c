@@ -135,7 +135,7 @@ void play_file(const char *file_name)
 	if(str_search_ptrn(".wav", file_name, strlen(file_name)) > 0) {
 		chdir(file_name);
 		play_wav_file(file_name);
-	} else if(str_search_ptrn(".mp3", file_name, strlen(file_name))) {
+	} else if(str_search_ptrn(".mp3", file_name, strlen(file_name)) > 0) {
 		play_mp3_file(file_name);
 	}
 }
