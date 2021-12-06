@@ -11,11 +11,7 @@
 
 #include "str_search_ptrn.h"
 #include "wav.h"
-
-void play_mp3_file(const char *file_name)
-{
-	printf("Not implemented.\n");
-}
+#include "mp3.h"
 
 void play_file(const char *file_name)
 {
