@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Wall -Werror -std=c11 -pedantic -ggdb
-LIBS=-lpulse-simple
+LIBS=
 PKGS=libpulse-simple
 
 BIN=puple
