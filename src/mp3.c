@@ -1,11 +1,14 @@
 /* https://web.archive.org/web/20070821052201/https://www.id3.org/mp3Frame */
 
 #include "mp3.h"
+#include "str_search_ptrn.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+
+const unsigned int SYNC = 0xfff0; /* 1111 1111 1111b */
 
 void play_mp3_file(const char *file_name)
 {
@@ -37,6 +40,35 @@ void play_mp3_file(const char *file_name)
 		return;
 	}
 
+	int frame = str_search_ptrn((char*)&SYNC, file_buffer, file_stat.st_size);
+
+	switch(*(int*)(file_buffer + frame + 3) & 0x8) {
+		case 0:
+			printf("MPEG-2\n");
+			break;
+		case 0x8:
+			printf("MPEG-1\n");
+			break;
+		default: {}
+	}
+
+	switch(*(int*)(file_buffer + frame + 3) & 0x6) {
+		case 0:
+			printf("Layer not defined.\n");
+			break;
+		case 0x2:
+			printf("Layer III.\n");
+			break;
+		case 0x4:
+			printf("Layer II.\n");
+			break;
+		case 0x6:
+			printf("Layer I.\n");
+			break;
+		default: {}
+	}
+
+	printf("SYNC: %d.\n", frame);
 	printf("Not implemented.\n");
 
 	free(audio_file);
