@@ -68,6 +68,19 @@ void play_mp3_file(const char *file_name)
 		default: {}
 	}
 
+	switch(*(int*)(file_buffer + frame + 5) & 0xc) {
+		case 0:
+			printf("22050\n");
+			break;
+		case 0x4:
+			printf("24000\n");
+			break;
+		case 0x8:
+			printf("16000\n");
+			break;
+		default: {}
+	}
+
 	printf("SYNC: %d.\n", frame);
 	printf("Not implemented.\n");
 
