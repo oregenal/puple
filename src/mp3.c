@@ -1,4 +1,4 @@
-/* https://web.archive.org/web/20070821052201/https://www.id3.org/mp3Frame */
+/* http://mpgedit.org/mpgedit/mpeg_format/mpeghdr.htm */
 
 #include "mp3.h"
 
