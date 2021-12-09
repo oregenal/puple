@@ -8,7 +8,7 @@
 #include <string.h>
 #include <sys/stat.h>
 
-const unsigned int SYNC = 0xfff0; /* 1111 1111 1111b */
+static const unsigned int SYNC = 0xfff0; /* 1111 1111 1111b */
 
 void play_mp3_file(const char *file_name)
 {
