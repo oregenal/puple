@@ -1,7 +1,6 @@
 /* https://web.archive.org/web/20070821052201/https://www.id3.org/mp3Frame */
 
 #include "mp3.h"
-#include "str_search_ptrn.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,12 +11,18 @@ typedef struct {
 	int frame_location;
 } frame_t;
 
-static const unsigned int SYNCWORD = 0xfff0; /* 1111 1111 1111b */
+int search_frame(const char* file_buffer, int size)
+{
+	for(int i = 0; i < size; ++i) {
+		if((unsigned char)file_buffer[i] == (unsigned char)0xff)
+			if(((unsigned char)file_buffer[i + 1] & (unsigned char)0xf0) == 0xf0)
+				return i;
+	}
+	return -1;
+}
 
 static void get_info(const char *file_buffer, int frame_position)
 {
-	printf("SYNCWORD: %d.\n", frame_position);
-
 	switch(*(file_buffer + frame_position + 1) & 0x8) {
 		case 0:
 			printf("MPEG-2\n");
@@ -110,10 +115,10 @@ void play_mp3_file(const char *file_name)
 	}
 
 	int frame_position = 0, frame_start = 0;
-	while((frame_start = str_search_ptrn((char*)&SYNCWORD, 
-					file_buffer + frame_position + frame_start, 
+	while((frame_start = search_frame(file_buffer + frame_position + frame_start, 
 					file_stat.st_size - frame_position)) > 0) {
 		frame_position += frame_start;
+		printf("Frame position: %d\n", frame_position);
 		get_info(file_buffer, frame_position);
 		frame_position += 32;
 		frame_start = 0;
