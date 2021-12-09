@@ -8,33 +8,27 @@
 #include <string.h>
 #include <sys/stat.h>
 
+typedef struct {
+	int frame_location;
+} frame_t;
+
 static const unsigned int SYNCWORD = 0xfff0; /* 1111 1111 1111b */
-
-static void play_MPEG_1()
-{
-	printf("MPEG-1\n");
-}
-
-static void play_MPEG_2()
-{
-	printf("MPEG-2\n");
-}
 
 static void get_info(const char *file_buffer, int frame_position)
 {
 	printf("SYNCWORD: %d.\n", frame_position);
 
-	switch(*(int*)(file_buffer + frame_position + 3) & 0x8) {
+	switch(*(file_buffer + frame_position + 1) & 0x8) {
 		case 0:
-			play_MPEG_2();
+			printf("MPEG-2\n");
 			break;
 		case 0x8:
-			play_MPEG_1();
+			printf("MPEG-1\n");
 			break;
 		default: {}
 	}
 
-	switch(*(int*)(file_buffer + frame_position + 3) & 0x6) {
+	switch(*(file_buffer + frame_position + 1) & 0x6) {
 		case 0:
 			printf("Layer not defined.\n");
 			break;
@@ -50,15 +44,35 @@ static void get_info(const char *file_buffer, int frame_position)
 		default: {}
 	}
 
-	switch(*(int*)(file_buffer + frame_position + 5) & 0xc) {
+	switch(*(file_buffer + frame_position + 1) & 0x1) {
+		case 0x0:
+			printf("Protected by CRC.\n");
+			break;
+		case 0x1:
+			printf("Not protected.\n");
+			break;
+		default: {}
+	}
+
+	switch(*(file_buffer + frame_position + 2) & 0xc) {
 		case 0:
-			printf("22050\n");
+			printf("Bitrate: 44100.\n");
 			break;
 		case 0x4:
-			printf("24000\n");
+			printf("Bitrate: 48000.\n");
 			break;
 		case 0x8:
-			printf("16000\n");
+			printf("Bitrate: 32000.\n");
+			break;
+		default: {}
+	}
+
+	switch(*(file_buffer + frame_position + 2) & 0x2) {
+		case 0x0:
+			printf("Frame not padded.\n");
+			break;
+		case 0x2:
+			printf("Frame padded.\n");
 			break;
 		default: {}
 	}
