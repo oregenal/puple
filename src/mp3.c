@@ -61,13 +61,13 @@ static void get_info(const char *file_buffer, int frame_position)
 
 	switch(*(file_buffer + frame_position + 2) & 0xc) {
 		case 0:
-			printf("Bitrate: 44100.\n");
+			printf("Samplerate: 44100.\n");
 			break;
 		case 0x4:
-			printf("Bitrate: 48000.\n");
+			printf("Samplerate: 48000.\n");
 			break;
 		case 0x8:
-			printf("Bitrate: 32000.\n");
+			printf("Samplerate: 32000.\n");
 			break;
 		default: {}
 	}
@@ -78,6 +78,58 @@ static void get_info(const char *file_buffer, int frame_position)
 			break;
 		case 0x2:
 			printf("Frame padded.\n");
+			break;
+		default: {}
+	}
+
+	switch(*(file_buffer + frame_position + 2) & 0xf0) {
+		case(0x0):
+			printf("Bitrate: free.\n");
+			break;
+		case(0x10):
+			printf("Bitrate: 32.\n");
+			break;
+		case(0x20):
+			printf("Bitrate: 40.\n");
+			break;
+		case(0x30):
+			printf("Bitrate: 48.\n");
+			break;
+		case(0x40):
+			printf("Bitrate: 56.\n");
+			break;
+		case(0x50):
+			printf("Bitrate: 64.\n");
+			break;
+		case(0x60):
+			printf("Bitrate: 80.\n");
+			break;
+		case(0x70):
+			printf("Bitrate: 96.\n");
+			break;
+		case(0x80):
+			printf("Bitrate: 112.\n");
+			break;
+		case(0x90):
+			printf("Bitrate: 128.\n");
+			break;
+		case(0xa0):
+			printf("Bitrate: 160.\n");
+			break;
+		case(0xb0):
+			printf("Bitrate: 192.\n");
+			break;
+		case(0xc0):
+			printf("Bitrate: 224.\n");
+			break;
+		case(0xd0):
+			printf("Bitrate: 256.\n");
+			break;
+		case(0xe0):
+			printf("Bitrate: 320.\n");
+			break;
+		case(0xf0):
+			printf("Bitrate: bad.\n");
 			break;
 		default: {}
 	}
