@@ -24,8 +24,8 @@ enum layer_discription {
 };
 
 enum protection_bit {
-	PROTECTED_BY_CRC,
-	NOT_PROTECTED
+	NOT_PROTECTED,
+	PROTECTED_BY_CRC
 };
 enum samplerate {
 	HZ16000 = 16000,
@@ -41,32 +41,32 @@ enum padding_bit {
 };
 
 enum bitrate {
-	free_kbps = 0,
-	kbps8 = 8000,
-	kbps16 = 16000,
-	kbps24 = 24000,
-	kbps32 = 32000,
-	kbps40 = 40000,
-	kbps48 = 48000,
-	kbps56 = 56000,
-	kbps64 = 64000,
-	kbps80 = 80000,
-	kbps96 = 96000,
-	kbps112 = 112000,
-	kbps128 = 128000,
-	kbps144 = 144000,
-	kbps160 = 160000,
-	kbps176 = 176000,
-	kbps192 = 192000,
-	kbps224 = 224000,
-	kbps256 = 256000,
-	kbps288 = 288000,
-	kbps320 = 320000,
-	kbps352 = 352000,
-	kbps384 = 384000,
-	kbps416 = 416000,
-	kbps448 = 448000,
-	bad_kbps
+	FREE_KBPS = 0,
+	KBPS8 = 8000,
+	KBPS16 = 16000,
+	KBPS24 = 24000,
+	KBPS32 = 32000,
+	KBPS40 = 40000,
+	KBPS48 = 48000,
+	KBPS56 = 56000,
+	KBPS64 = 64000,
+	KBPS80 = 80000,
+	KBPS96 = 96000,
+	KBPS112 = 112000,
+	KBPS128 = 128000,
+	KBPS144 = 144000,
+	KBPS160 = 160000,
+	KBPS176 = 176000,
+	KBPS192 = 192000,
+	KBPS224 = 224000,
+	KBPS256 = 256000,
+	KBPS288 = 288000,
+	KBPS320 = 320000,
+	KBPS352 = 352000,
+	KBPS384 = 384000,
+	KBPS416 = 416000,
+	KBPS448 = 448000,
+	BAD_KBPS
 };
 
 enum channel_mode {
@@ -74,6 +74,20 @@ enum channel_mode {
 	JOINT_STEREO,
 	DUAL_CHANNEL,
 	SINGLE_CHANNEL
+};
+
+enum intensity_stereo {
+	INTENSITY_OFF,
+	BANDS_4_31,
+	BANDS_8_31,
+	BANDS_12_31,
+	BANDS_16_31,
+	INTENSITY_ON
+};
+
+enum ms_stereo {
+	MS_OFF,
+	MS_ON
 };
 
 typedef struct {
@@ -88,6 +102,8 @@ typedef struct {
 	int samplerate;
 	int padding_bit;
 	int channel_mode;
+	int intensity_stereo;
+	int ms_stereo;
 } frame_t;
 
 static int search_frame(const char* file_buffer, int size)
@@ -179,213 +195,213 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 
 	switch(*(file_buffer + frame_props->location + 2) & 0xf0) {
 		case(0x0):
-			frame_props->bitrate = free_kbps;
+			frame_props->bitrate = FREE_KBPS;
 			frame_props->status = ERROR;
 			break;
 		case(0x10):
 			if(frame_props->mpeg_id == MPEG_v2 
 					&& (frame_props->layer_discription == LAYER_II 
 						|| frame_props->layer_discription == LAYER_III))
-				frame_props->bitrate = kbps8;
+				frame_props->bitrate = KBPS8;
 			else
-				frame_props->bitrate = kbps32;
+				frame_props->bitrate = KBPS32;
 			break;
 		case(0x20):
 			if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps64;
+				frame_props->bitrate = KBPS64;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
-				frame_props->bitrate = kbps40;
+				frame_props->bitrate = KBPS40;
 			else if(frame_props->mpeg_id == MPEG_v2 
 					&& (frame_props->layer_discription == LAYER_II 
 					|| frame_props->layer_discription == LAYER_III))
-				frame_props->bitrate = kbps16;
+				frame_props->bitrate = KBPS16;
 			else
-				frame_props->bitrate = kbps48;
+				frame_props->bitrate = KBPS48;
 			break;
 		case(0x30):
 			if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps96;
+				frame_props->bitrate = KBPS96;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
-				frame_props->bitrate = kbps48;
+				frame_props->bitrate = KBPS48;
 			else if(frame_props->mpeg_id == MPEG_v2 
 					&& (frame_props->layer_discription == LAYER_II 
 					|| frame_props->layer_discription == LAYER_III))
-				frame_props->bitrate = kbps24;
+				frame_props->bitrate = KBPS24;
 			else
-				frame_props->bitrate = kbps56;
+				frame_props->bitrate = KBPS56;
 			break;
 		case(0x40):
 			if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps128;
+				frame_props->bitrate = KBPS128;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
-				frame_props->bitrate = kbps56;
+				frame_props->bitrate = KBPS56;
 			else if(frame_props->mpeg_id == MPEG_v2 
 					&& (frame_props->layer_discription == LAYER_II 
 					|| frame_props->layer_discription == LAYER_III))
-				frame_props->bitrate = kbps32;
+				frame_props->bitrate = KBPS32;
 			else
-				frame_props->bitrate = kbps64;
+				frame_props->bitrate = KBPS64;
 			break;
 		case(0x50):
 			if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps160;
+				frame_props->bitrate = KBPS160;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
-				frame_props->bitrate = kbps64;
+				frame_props->bitrate = KBPS64;
 			else if(frame_props->mpeg_id == MPEG_v2 
 					&& (frame_props->layer_discription == LAYER_II 
 					|| frame_props->layer_discription == LAYER_III))
-				frame_props->bitrate = kbps40;
+				frame_props->bitrate = KBPS40;
 			else
-				frame_props->bitrate = kbps80;
+				frame_props->bitrate = KBPS80;
 			break;
 		case(0x60):
 			if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps192;
+				frame_props->bitrate = KBPS192;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
-				frame_props->bitrate = kbps80;
+				frame_props->bitrate = KBPS80;
 			else if(frame_props->mpeg_id == MPEG_v2 
 					&& (frame_props->layer_discription == LAYER_II 
 					|| frame_props->layer_discription == LAYER_III))
-				frame_props->bitrate = kbps48;
+				frame_props->bitrate = KBPS48;
 			else
-				frame_props->bitrate = kbps96;
+				frame_props->bitrate = KBPS96;
 			break;
 		case(0x70):
 			if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps224;
+				frame_props->bitrate = KBPS224;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
-				frame_props->bitrate = kbps96;
+				frame_props->bitrate = KBPS96;
 			else if(frame_props->mpeg_id == MPEG_v2 
 					&& (frame_props->layer_discription == LAYER_II 
 					|| frame_props->layer_discription == LAYER_III))
-				frame_props->bitrate = kbps56;
+				frame_props->bitrate = KBPS56;
 			else
-				frame_props->bitrate = kbps112;
+				frame_props->bitrate = KBPS112;
 			break;
 		case(0x80):
 			if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps256;
+				frame_props->bitrate = KBPS256;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
-				frame_props->bitrate = kbps112;
+				frame_props->bitrate = KBPS112;
 			else if(frame_props->mpeg_id == MPEG_v2 
 					&& (frame_props->layer_discription == LAYER_II 
 					|| frame_props->layer_discription == LAYER_III))
-				frame_props->bitrate = kbps64;
+				frame_props->bitrate = KBPS64;
 			else
-				frame_props->bitrate = kbps128;
+				frame_props->bitrate = KBPS128;
 			break;
 		case(0x90):
 			if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps288;
+				frame_props->bitrate = KBPS288;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_II)
-				frame_props->bitrate = kbps160;
+				frame_props->bitrate = KBPS160;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
-				frame_props->bitrate = kbps128;
+				frame_props->bitrate = KBPS128;
 			else if(frame_props->mpeg_id == MPEG_v2 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps144;
+				frame_props->bitrate = KBPS144;
 			else
-				frame_props->bitrate = kbps80;
+				frame_props->bitrate = KBPS80;
 			break;
 		case(0xa0):
 			if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps320;
+				frame_props->bitrate = KBPS320;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_II)
-				frame_props->bitrate = kbps192;
+				frame_props->bitrate = KBPS192;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
-				frame_props->bitrate = kbps160;
+				frame_props->bitrate = KBPS160;
 			else if(frame_props->mpeg_id == MPEG_v2 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps160;
+				frame_props->bitrate = KBPS160;
 			else
-				frame_props->bitrate = kbps96;
+				frame_props->bitrate = KBPS96;
 			break;
 		case(0xb0):
 			if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps352;
+				frame_props->bitrate = KBPS352;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_II)
-				frame_props->bitrate = kbps224;
+				frame_props->bitrate = KBPS224;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
-				frame_props->bitrate = kbps192;
+				frame_props->bitrate = KBPS192;
 			else if(frame_props->mpeg_id == MPEG_v2 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps176;
+				frame_props->bitrate = KBPS176;
 			else
-				frame_props->bitrate = kbps112;
+				frame_props->bitrate = KBPS112;
 			break;
 		case(0xc0):
 			if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps384;
+				frame_props->bitrate = KBPS384;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_II)
-				frame_props->bitrate = kbps256;
+				frame_props->bitrate = KBPS256;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
-				frame_props->bitrate = kbps224;
+				frame_props->bitrate = KBPS224;
 			else if(frame_props->mpeg_id == MPEG_v2 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps192;
+				frame_props->bitrate = KBPS192;
 			else
-				frame_props->bitrate = kbps128;
+				frame_props->bitrate = KBPS128;
 			break;
 		case(0xd0):
 			if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps416;
+				frame_props->bitrate = KBPS416;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_II)
-				frame_props->bitrate = kbps320;
+				frame_props->bitrate = KBPS320;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
-				frame_props->bitrate = kbps256;
+				frame_props->bitrate = KBPS256;
 			else if(frame_props->mpeg_id == MPEG_v2 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps224;
+				frame_props->bitrate = KBPS224;
 			else
-				frame_props->bitrate = kbps144;
+				frame_props->bitrate = KBPS144;
 			break;
 		case(0xe0):
 			if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps448;
+				frame_props->bitrate = KBPS448;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_II)
-				frame_props->bitrate = kbps384;
+				frame_props->bitrate = KBPS384;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
-				frame_props->bitrate = kbps320;
+				frame_props->bitrate = KBPS320;
 			else if(frame_props->mpeg_id == MPEG_v2 
 					&& frame_props->layer_discription == LAYER_I)
-				frame_props->bitrate = kbps256;
+				frame_props->bitrate = KBPS256;
 			else
-				frame_props->bitrate = kbps160;
+				frame_props->bitrate = KBPS160;
 			break;
 		case(0xf0):
-			frame_props->bitrate = bad_kbps;
+			frame_props->bitrate = BAD_KBPS;
 			frame_props->status = ERROR;
 			break;
 		default:
@@ -417,6 +433,45 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 			frame_props->status = ERROR;
 	}	
 
+	if(frame_props->channel_mode == JOINT_STEREO) {
+		switch(*(file_buffer + frame_props->location + 3) & 0x30) {
+			case 0x0:
+				if(frame_props->layer_discription == LAYER_III) {
+					frame_props->intensity_stereo = INTENSITY_OFF;
+					frame_props->ms_stereo = MS_OFF;
+				} else {
+					frame_props->intensity_stereo = BANDS_4_31;
+				}
+				break;
+			case 0x10:
+				if(frame_props->layer_discription == LAYER_III) {
+					frame_props->intensity_stereo = INTENSITY_ON;
+					frame_props->ms_stereo = MS_OFF;
+				} else {
+					frame_props->intensity_stereo = BANDS_8_31;
+				}
+				break;
+			case 0x20:
+				if(frame_props->layer_discription == LAYER_III) {
+					frame_props->intensity_stereo = INTENSITY_OFF;
+					frame_props->ms_stereo = MS_ON;
+				} else {
+					frame_props->intensity_stereo = BANDS_12_31;
+				}
+				break;
+			case 0x30:
+				if(frame_props->layer_discription == LAYER_III) {
+					frame_props->intensity_stereo = INTENSITY_ON;
+					frame_props->ms_stereo = MS_ON;
+				} else {
+					frame_props->intensity_stereo = BANDS_16_31;
+				}
+				break;
+			default:
+				frame_props->status = ERROR;
+		}
+	}
+
 	if(frame_props->protection_bit == PROTECTED_BY_CRC)
 		frame_props->audio_data = frame_props->location + 32 + 2;
 	else
@@ -431,6 +486,7 @@ void play_frame(const char *file_buffer, frame_t *frame_props)
 	printf("Layer version: %d.\n", frame_props->layer_discription);
 	printf("Bitrate: %d.\n", frame_props->bitrate);
 	printf("Samplerate: %d.\n", frame_props->samplerate);
+	printf("Protection: %d.\n", frame_props->protection_bit);
 	putchar('\n');
 }
 
