@@ -79,6 +79,7 @@ enum channel_mode {
 typedef struct {
 	int status;
 	int location;
+	int audio_data;
 	int lenght;
 	int mpeg_id;
 	int layer_discription;
@@ -414,7 +415,12 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 			break;
 		default:
 			frame_props->status = ERROR;
-	}
+	}	
+
+	if(frame_props->protection_bit == PROTECTED_BY_CRC)
+		frame_props->audio_data = frame_props->location + 32 + 2;
+	else
+		frame_props->audio_data = frame_props->location + 32;
 }
 
 void play_frame(const char *file_buffer, frame_t *frame_props)
