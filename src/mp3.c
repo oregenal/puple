@@ -1,5 +1,6 @@
 /* http://mpgedit.org/mpgedit/mpeg_format/mpeghdr.htm 
- * https://habr.com/ru/post/103635 */
+ * https://habr.com/ru/post/103635 
+ * https://www.fcreyf.com/article/mp3-decoding-in-c++*/
 
 #include "mp3.h"
 
@@ -479,7 +480,7 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 		frame_props->audio_data = frame_props->location + 32;
 }
 
-void play_frame(const char *file_buffer, frame_t *frame_props)
+static void play_frame(const char *file_buffer, frame_t *frame_props)
 {
 	printf("Frame position: %d\n", frame_props->location);
 	printf("Frame length: %d.\n", frame_props->length);
@@ -487,11 +488,20 @@ void play_frame(const char *file_buffer, frame_t *frame_props)
 	printf("Layer version: %d.\n", frame_props->layer_discription);
 	printf("Bitrate: %d.\n", frame_props->bitrate);
 	printf("Samplerate: %d.\n", frame_props->samplerate);
+
+	switch(frame_props->channel_mode) {
+		case SINGLE_CHANNEL:
+			printf("Mono.\n");
+			break;
+		default:
+			printf("Stereo.\n");
+	}
+
 	printf("Protection: %d.\n", frame_props->protection_bit);
 	putchar('\n');
 }
 
-int read_id3(const char *file_buffer)
+static int read_id3(const char *file_buffer)
 {
 	int res = 0;
 
