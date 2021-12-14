@@ -1,4 +1,5 @@
-/* http://mpgedit.org/mpgedit/mpeg_format/mpeghdr.htm */
+/* http://mpgedit.org/mpgedit/mpeg_format/mpeghdr.htm 
+ * https://habr.com/ru/post/103635 */
 
 #include "mp3.h"
 
@@ -94,7 +95,7 @@ typedef struct {
 	int status;
 	int location;
 	int audio_data;
-	int lenght;
+	int length;
 	int mpeg_id;
 	int layer_discription;
 	int protection_bit;
@@ -409,11 +410,11 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 	}
 
 	if(frame_props->layer_discription == LAYER_I)
-		frame_props->lenght = (12 * frame_props->bitrate 
+		frame_props->length = (12 * frame_props->bitrate 
 				/ frame_props->samplerate + frame_props->padding_bit) * 4;
 	else if(frame_props->layer_discription == LAYER_III 
 			|| frame_props->layer_discription == LAYER_II)
-		frame_props->lenght = 144 * frame_props->bitrate 
+		frame_props->length = 144 * frame_props->bitrate 
 			/frame_props->samplerate + frame_props->padding_bit;
 
 	switch(*(file_buffer + frame_props->location + 3) & 0xc0) {
@@ -481,13 +482,56 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 void play_frame(const char *file_buffer, frame_t *frame_props)
 {
 	printf("Frame position: %d\n", frame_props->location);
-	printf("Frame lenght: %d.\n", frame_props->lenght);
+	printf("Frame length: %d.\n", frame_props->length);
 	printf("Mpeg version: %d.\n", frame_props->mpeg_id);
 	printf("Layer version: %d.\n", frame_props->layer_discription);
 	printf("Bitrate: %d.\n", frame_props->bitrate);
 	printf("Samplerate: %d.\n", frame_props->samplerate);
 	printf("Protection: %d.\n", frame_props->protection_bit);
 	putchar('\n');
+}
+
+int read_id3(const char *file_buffer)
+{
+	int res = 0;
+
+	if(strncmp("ID3", file_buffer, 3) != 0)
+		return -1;
+
+	printf("ID3 version: 2.%d.\n", file_buffer[3]);
+
+	for(int i = 0; i < 4; ++i) {
+		res = (res << 7) + ((unsigned char)file_buffer[i + 6] & 0x7f);
+	}
+
+	int unsynchronisation = file_buffer[5] >> 7;
+	if(unsynchronisation) {
+		fprintf(stderr, "Unsynchronisation not implemented.\n");
+		return -1;
+	}
+
+	int extended_header = file_buffer[5] << 1 >> 7;
+	if(extended_header) {
+		fprintf(stderr, "Extended header not implemented.\n");
+		return -1;
+	}
+
+	int experimental_indicator = file_buffer[5] << 2 >> 7;
+	if(experimental_indicator) {
+		fprintf(stderr, "Experimental stage not implemented.\n");
+		return -1;
+	}
+
+	int footer_present = file_buffer[5] << 3 >> 7;
+	if(footer_present) {
+		fprintf(stderr, "Footer section not implemented.\n");
+		return -1;
+	}
+
+	printf("Lenght of ID3 header: %d.\n", res);
+	putchar('\n');
+
+	return res;
 }
 
 void play_mp3_file(const char *file_name)
@@ -516,13 +560,15 @@ void play_mp3_file(const char *file_name)
 		return;
 	}
 
-	if(strncmp(file_buffer, "ID3", 3) != 0 ) {
+	frame_props.location = read_id3(file_buffer);
+
+	if(frame_props.location < 0) {
 		fprintf(stderr, "Unsupported file format.\n");
 		return;
 	}
 
 	int frame_start = 0;
-	frame_props.location = 0;
+	/* frame_props.location = 0; */
 	while((frame_start = search_frame(file_buffer + frame_props.location + frame_start, 
 					file_stat.st_size - frame_props.location)) > 0) {
 		frame_props.location += frame_start;
@@ -532,7 +578,7 @@ void play_mp3_file(const char *file_name)
 		if(frame_props.status == OK)
 			play_frame(file_buffer, &frame_props);
 
-		frame_props.location += 32;
+		frame_props.location += frame_props.length - 1;
 		frame_start = 0;
 	}
 
