@@ -529,6 +529,7 @@ int read_id3(const char *file_buffer)
 	}
 
 	printf("Lenght of ID3 header: %d.\n", res);
+	putchar('\n');
 
 	return res;
 }
