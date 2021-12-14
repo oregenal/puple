@@ -95,7 +95,7 @@ typedef struct {
 	int status;
 	int location;
 	int audio_data;
-	int lenght;
+	int length;
 	int mpeg_id;
 	int layer_discription;
 	int protection_bit;
@@ -410,11 +410,11 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 	}
 
 	if(frame_props->layer_discription == LAYER_I)
-		frame_props->lenght = (12 * frame_props->bitrate 
+		frame_props->length = (12 * frame_props->bitrate 
 				/ frame_props->samplerate + frame_props->padding_bit) * 4;
 	else if(frame_props->layer_discription == LAYER_III 
 			|| frame_props->layer_discription == LAYER_II)
-		frame_props->lenght = 144 * frame_props->bitrate 
+		frame_props->length = 144 * frame_props->bitrate 
 			/frame_props->samplerate + frame_props->padding_bit;
 
 	switch(*(file_buffer + frame_props->location + 3) & 0xc0) {
@@ -482,7 +482,7 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 void play_frame(const char *file_buffer, frame_t *frame_props)
 {
 	printf("Frame position: %d\n", frame_props->location);
-	printf("Frame lenght: %d.\n", frame_props->lenght);
+	printf("Frame length: %d.\n", frame_props->length);
 	printf("Mpeg version: %d.\n", frame_props->mpeg_id);
 	printf("Layer version: %d.\n", frame_props->layer_discription);
 	printf("Bitrate: %d.\n", frame_props->bitrate);
@@ -518,13 +518,13 @@ int read_id3(const char *file_buffer)
 
 	int experimental_indicator = file_buffer[5] << 2 >> 7;
 	if(experimental_indicator) {
-		fprintf(stderr, "Experimental indicator not implemented.\n");
+		fprintf(stderr, "Experimental stage not implemented.\n");
 		return -1;
 	}
 
 	int footer_present = file_buffer[5] << 3 >> 7;
 	if(footer_present) {
-		fprintf(stderr, "Footer indicator not implemented.\n");
+		fprintf(stderr, "Footer section not implemented.\n");
 		return -1;
 	}
 
@@ -577,7 +577,7 @@ void play_mp3_file(const char *file_name)
 		if(frame_props.status == OK)
 			play_frame(file_buffer, &frame_props);
 
-		frame_props.location += 32;
+		frame_props.location += frame_props.length - 1;
 		frame_start = 0;
 	}
 
