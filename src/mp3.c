@@ -1,4 +1,5 @@
-/* http://mpgedit.org/mpgedit/mpeg_format/mpeghdr.htm */
+/* http://mpgedit.org/mpgedit/mpeg_format/mpeghdr.htm 
+ * https://habr.com/ru/post/103635 */
 
 #include "mp3.h"
 
@@ -490,6 +491,48 @@ void play_frame(const char *file_buffer, frame_t *frame_props)
 	putchar('\n');
 }
 
+int read_id3(const char *file_buffer)
+{
+	int res = 0;
+
+	if(strncmp("ID3", file_buffer, 3) != 0)
+		return -1;
+
+	printf("ID3 version: 2.%d.\n", file_buffer[3]);
+
+	for(int i = 0; i < 4; ++i) {
+		res = (res << 7) + ((unsigned char)file_buffer[i + 6] & 0x7f);
+	}
+
+	int unsynchronisation = file_buffer[5] >> 7;
+	if(unsynchronisation) {
+		fprintf(stderr, "Unsynchronisation not implemented.\n");
+		return -1;
+	}
+
+	int extended_header = file_buffer[5] << 1 >> 7;
+	if(extended_header) {
+		fprintf(stderr, "Extended header not implemented.\n");
+		return -1;
+	}
+
+	int experimental_indicator = file_buffer[5] << 2 >> 7;
+	if(experimental_indicator) {
+		fprintf(stderr, "Experimental indicator not implemented.\n");
+		return -1;
+	}
+
+	int footer_present = file_buffer[5] << 3 >> 7;
+	if(footer_present) {
+		fprintf(stderr, "Footer indicator not implemented.\n");
+		return -1;
+	}
+
+	printf("Lenght of ID3 header: %d.\n", res);
+
+	return res;
+}
+
 void play_mp3_file(const char *file_name)
 {
 	struct stat file_stat;
@@ -516,13 +559,15 @@ void play_mp3_file(const char *file_name)
 		return;
 	}
 
-	if(strncmp(file_buffer, "ID3", 3) != 0 ) {
+	frame_props.location = read_id3(file_buffer);
+
+	if(frame_props.location < 0) {
 		fprintf(stderr, "Unsupported file format.\n");
 		return;
 	}
 
 	int frame_start = 0;
-	frame_props.location = 0;
+	/* frame_props.location = 0; */
 	while((frame_start = search_frame(file_buffer + frame_props.location + frame_start, 
 					file_stat.st_size - frame_props.location)) > 0) {
 		frame_props.location += frame_start;
