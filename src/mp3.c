@@ -504,6 +504,8 @@ int read_id3(const char *file_buffer)
 		res = (res << 7) + ((unsigned char)file_buffer[i + 6] & 0x7f);
 	}
 
+	res += 10;
+
 	int unsynchronisation = file_buffer[5] >> 7;
 	if(unsynchronisation) {
 		fprintf(stderr, "Unsynchronisation not implemented.\n");
@@ -570,7 +572,7 @@ void play_mp3_file(const char *file_name)
 	int frame_start = 0;
 	/* frame_props.location = 0; */
 	while((frame_start = search_frame(file_buffer + frame_props.location + frame_start, 
-					file_stat.st_size - frame_props.location)) > 0) {
+					file_stat.st_size - frame_props.location)) >= 0) {
 		frame_props.location += frame_start;
 
 		get_info(file_buffer, &frame_props);
@@ -578,7 +580,7 @@ void play_mp3_file(const char *file_name)
 		if(frame_props.status == OK)
 			play_frame(file_buffer, &frame_props);
 
-		frame_props.location += frame_props.length - 1;
+		frame_props.location += frame_props.length;
 		frame_start = 0;
 	}
 
