@@ -1,6 +1,7 @@
 /* http://mpgedit.org/mpgedit/mpeg_format/mpeghdr.htm 
  * https://habr.com/ru/post/103635 
- * https://www.fcreyf.com/article/mp3-decoding-in-c++*/
+ * https://www.fcreyf.com/article/mp3-decoding-in-c++
+ * http://gabriel.mp3-tech.org/mp3infotag.html */
 
 #include "mp3.h"
 #include "str_search_ptrn.h"
@@ -98,7 +99,7 @@ enum ms_stereo {
 typedef struct {
 	int status;
 	int location;
-	int audio_data;
+	int data;
 	int length;
 	int mpeg_id;
 	int layer_discription;
@@ -119,6 +120,24 @@ static int search_frame(const char* file_buffer, int size)
 				return i;
 	}
 	return -1;
+}
+
+static void read_xing(const char *file_buffer, frame_t *frame_props)
+{
+	/* TODO proper Xing Tag parsing */
+
+	if(frame_props->status == INFO)
+		printf("Info Tag found");
+
+	if(frame_props->status == XING)
+		printf("Xing Tag found");
+
+	printf(", but proper parser not implemented yet.\n\n");
+
+	printf("Encoder: ");
+	fwrite(file_buffer + frame_props->data + frame_props->location + 120, 1, 9, stdout);
+	putchar('\n');
+	putchar('\n');
 }
 
 static void get_info(const char *file_buffer, frame_t *frame_props)
@@ -478,21 +497,27 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 	}
 
 	if(frame_props->protection_bit == PROTECTED_BY_CRC)
-		frame_props->audio_data = frame_props->location + 32 + 2;
+		frame_props->data = frame_props->location + 32 + 2;
 	else
-		frame_props->audio_data = frame_props->location + 32;
+		frame_props->data = frame_props->location + 32;
 
 	int info = str_search_ptrn("Info", 
 			(file_buffer + frame_props->location), 
 			frame_props->length);
-	if(info >= 0)
+	if(info >= 0) {
 		frame_props->status = INFO;
+		frame_props->data = info;
+		read_xing(file_buffer, frame_props);
+	}
 
 	info = str_search_ptrn("Xing", 
 			(file_buffer + frame_props->location), 
 			frame_props->length);
-	if(info >= 0)
+	if(info >= 0) {
 		frame_props->status = XING;
+		frame_props->data = info;
+		read_xing(file_buffer, frame_props);
+	}
 }
 
 static void play_frame(const char *file_buffer, frame_t *frame_props)
