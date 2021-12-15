@@ -3,6 +3,7 @@
  * https://www.fcreyf.com/article/mp3-decoding-in-c++*/
 
 #include "mp3.h"
+#include "str_search_ptrn.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +12,8 @@
 
 enum status {
 	OK,
+	INFO,
+	XING,
 	ERROR
 };
 
@@ -478,6 +481,18 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 		frame_props->audio_data = frame_props->location + 32 + 2;
 	else
 		frame_props->audio_data = frame_props->location + 32;
+
+	int info = str_search_ptrn("Info", 
+			(file_buffer + frame_props->location), 
+			frame_props->length);
+	if(info >= 0)
+		frame_props->status = INFO;
+
+	info = str_search_ptrn("Xing", 
+			(file_buffer + frame_props->location), 
+			frame_props->length);
+	if(info >= 0)
+		frame_props->status = XING;
 }
 
 static void play_frame(const char *file_buffer, frame_t *frame_props)
@@ -490,13 +505,44 @@ static void play_frame(const char *file_buffer, frame_t *frame_props)
 	printf("Samplerate: %d.\n", frame_props->samplerate);
 
 	switch(frame_props->channel_mode) {
-		case SINGLE_CHANNEL:
-			printf("Mono.\n");
-			break;
-		default:
+		case STEREO:
 			printf("Stereo.\n");
+			break;
+		case JOINT_STEREO:
+			printf("Joint stereo.\n");
+			break;
+		case DUAL_CHANNEL:
+			printf("Dual channel.\n");
+			break;
+		case SINGLE_CHANNEL:
+			printf("Single channel.\n");
+			break;
+		default: {}
 	}
 
+	if(frame_props->channel_mode == JOINT_STEREO) {
+		switch(frame_props->intensity_stereo) {
+			case INTENSITY_OFF:
+				printf("Intensity stereo: Off.\n");
+				break;
+			case INTENSITY_ON:
+				printf("Intensity stereo: On.\n");
+				break;
+			default: {}
+		}
+
+		switch(frame_props->ms_stereo) {
+			case MS_OFF:
+				printf("M/S stereo: Off.\n");
+				break;
+			case MS_ON:
+				printf("M/S stereo: On.\n");
+				break;
+			default: {}
+		}
+	}
+
+	printf("Padded: %d.\n", frame_props->padding_bit);
 	printf("Protection: %d.\n", frame_props->protection_bit);
 	putchar('\n');
 }
