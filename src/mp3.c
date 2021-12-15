@@ -626,7 +626,6 @@ void play_mp3_file(const char *file_name)
 	}
 
 	int frame_start = 0;
-	/* frame_props.location = 0; */
 	while((frame_start = search_frame(file_buffer + frame_props.location + frame_start, 
 					file_stat.st_size - frame_props.location)) >= 0) {
 		frame_props.location += frame_start;
