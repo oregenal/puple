@@ -135,8 +135,35 @@ static void read_xing(const char *file_buffer, frame_t *frame_props)
 	printf(", but proper parser not implemented yet.\n\n");
 
 	printf("Encoder: ");
-	fwrite(file_buffer + frame_props->data + frame_props->location + 120, 1, 9, stdout);
+	fwrite(file_buffer + frame_props->data 
+			+ frame_props->location + 120, 1, 9, stdout);
+	putchar('.');
 	putchar('\n');
+
+	unsigned char low_pass = *(file_buffer + frame_props->data 
+								+ frame_props->location + 130);
+	printf("Low pass filter: %d.\n", low_pass);
+
+	unsigned char min_bitrate = *(file_buffer + frame_props->data 
+			+ frame_props->location + 140);
+	printf("Minimal bitrate: %d.\n", min_bitrate);
+
+	unsigned short start_saples = *(unsigned short *)(file_buffer 
+													+ frame_props->data 
+													+ frame_props->location 
+													+ 141);
+	start_saples = (start_saples >> 8 | start_saples << 8);
+	start_saples >>= 4;
+	printf("%d samples encoder delay. (samples added at begining)\n", 
+			start_saples);
+
+	unsigned short padded_saples = *(unsigned short *)(file_buffer 
+													 + frame_props->data 
+													 + frame_props->location 
+													 + 142);
+	padded_saples = (padded_saples >> 8 | padded_saples << 8) & 0x0fff;
+	printf("%d samples have been padded at the end of the file.\n", 
+			padded_saples);
 	putchar('\n');
 }
 
