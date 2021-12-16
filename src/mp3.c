@@ -1,7 +1,9 @@
 /* http://mpgedit.org/mpgedit/mpeg_format/mpeghdr.htm 
  * https://habr.com/ru/post/103635 
  * https://www.fcreyf.com/article/mp3-decoding-in-c++
- * http://gabriel.mp3-tech.org/mp3infotag.html */
+ * http://gabriel.mp3-tech.org/mp3infotag.html
+ * */
+
 #define _DEFAULT_SOURCE
 
 #include "mp3.h"
