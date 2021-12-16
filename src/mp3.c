@@ -2,14 +2,17 @@
  * https://habr.com/ru/post/103635 
  * https://www.fcreyf.com/article/mp3-decoding-in-c++
  * http://gabriel.mp3-tech.org/mp3infotag.html */
+#define _DEFAULT_SOURCE
 
 #include "mp3.h"
 #include "str_search_ptrn.h"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <endian.h>
 
 enum status {
 	OK,
@@ -152,8 +155,8 @@ static void read_xing(const char *file_buffer, frame_t *frame_props)
 													+ frame_props->data 
 													+ frame_props->location 
 													+ 141);
-	start_saples = (start_saples >> 8 | start_saples << 8);
-	start_saples >>= 4;
+	start_saples = be16toh(start_saples) >> 4;
+	//start_saples >>= 4;
 	printf("%d samples encoder delay. (samples added at begining)\n", 
 			start_saples);
 
@@ -161,9 +164,34 @@ static void read_xing(const char *file_buffer, frame_t *frame_props)
 													 + frame_props->data 
 													 + frame_props->location 
 													 + 142);
-	padded_saples = (padded_saples >> 8 | padded_saples << 8) & 0x0fff;
+	padded_saples = be16toh(padded_saples) & 0x0fff;
 	printf("%d samples have been padded at the end of the file.\n", 
 			padded_saples);
+
+	unsigned int mp3_length = *(unsigned int *)(file_buffer 
+											   + frame_props->data 
+											   + frame_props->location
+											   + 148);
+	mp3_length = be32toh(mp3_length);
+	printf("Mp3 length: %d bytes.\n", mp3_length);
+
+	uint8_t misc = *(uint8_t *)(file_buffer + frame_props->data
+								+ frame_props->location + 144);
+	switch(misc & 0xc0) {
+		case(0x0):
+			printf("Original bitrate: 32kHz or less.\n");
+			break;
+		case(0x40):
+			printf("Original bitrate: 44.1kHz.\n");
+			break;
+		case(0x80):
+			printf("Original bitrate: 48kHz.\n");
+			break;
+		case(0xc0):
+			printf("Original bitrate: hegher than 48kHz.\n");
+			break;
+		default: {}
+	}
 	putchar('\n');
 }
 
