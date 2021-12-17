@@ -120,8 +120,8 @@ typedef struct {
 static int search_frame(const char* file_buffer, int size)
 {
 	for(int i = 0; i < size; ++i) {
-		if((unsigned char)file_buffer[i] == (unsigned char)0xff)
-			if(((unsigned char)file_buffer[i + 1] & (unsigned char)0xf0) == 0xf0)
+		if((unsigned char)file_buffer[i] == 0xff 
+			&& (unsigned char)file_buffer[i + 1] >= 0xf0)
 				return i;
 	}
 	return -1;
@@ -145,35 +145,34 @@ static void read_xing(const char *file_buffer, frame_t *frame_props)
 	putchar('.');
 	putchar('\n');
 
-	unsigned char low_pass = *(file_buffer + frame_props->data 
-								+ frame_props->location + 130);
+	uint8_t low_pass = *(file_buffer + frame_props->data 
+							   + frame_props->location + 130);
 	printf("Low pass filter: %d.\n", low_pass);
 
-	unsigned char min_bitrate = *(file_buffer + frame_props->data 
-			+ frame_props->location + 140);
+	uint8_t min_bitrate = *(file_buffer + frame_props->data 
+								  + frame_props->location + 140);
 	printf("Minimal bitrate: %d.\n", min_bitrate);
 
-	unsigned short start_saples = *(unsigned short *)(file_buffer 
-													+ frame_props->data 
-													+ frame_props->location 
-													+ 141);
+	uint16_t start_saples = *(uint16_t *)(file_buffer 
+										  + frame_props->data 
+										  + frame_props->location 
+										  + 141);
 	start_saples = be16toh(start_saples) >> 4;
-	//start_saples >>= 4;
 	printf("%d samples encoder delay. (samples added at begining)\n", 
 			start_saples);
 
-	unsigned short padded_saples = *(unsigned short *)(file_buffer 
-													 + frame_props->data 
-													 + frame_props->location 
-													 + 142);
+	uint16_t padded_saples = *(uint16_t *)(file_buffer 
+										   + frame_props->data 
+										   + frame_props->location 
+										   + 142);
 	padded_saples = be16toh(padded_saples) & 0x0fff;
 	printf("%d samples have been padded at the end of the file.\n", 
 			padded_saples);
 
-	unsigned int mp3_length = *(unsigned int *)(file_buffer 
-											   + frame_props->data 
-											   + frame_props->location
-											   + 148);
+	uint32_t mp3_length = *(uint32_t *)(file_buffer 
+										+ frame_props->data 
+										+ frame_props->location
+										+ 148);
 	mp3_length = be32toh(mp3_length);
 	printf("Mp3 length: %d bytes.\n", mp3_length);
 
@@ -281,15 +280,15 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 			break;
 		case(0x10):
 			if(frame_props->mpeg_id == MPEG_v2 
-					&& (frame_props->layer_discription == LAYER_II 
-						|| frame_props->layer_discription == LAYER_III))
+				&& (frame_props->layer_discription == LAYER_II 
+				|| frame_props->layer_discription == LAYER_III))
 				frame_props->bitrate = KBPS8;
 			else
 				frame_props->bitrate = KBPS32;
 			break;
 		case(0x20):
 			if(frame_props->mpeg_id == MPEG_v1 
-					&& frame_props->layer_discription == LAYER_I)
+				&& frame_props->layer_discription == LAYER_I)
 				frame_props->bitrate = KBPS64;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
@@ -303,7 +302,7 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 			break;
 		case(0x30):
 			if(frame_props->mpeg_id == MPEG_v1 
-					&& frame_props->layer_discription == LAYER_I)
+				&& frame_props->layer_discription == LAYER_I)
 				frame_props->bitrate = KBPS96;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
@@ -317,7 +316,7 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 			break;
 		case(0x40):
 			if(frame_props->mpeg_id == MPEG_v1 
-					&& frame_props->layer_discription == LAYER_I)
+				&& frame_props->layer_discription == LAYER_I)
 				frame_props->bitrate = KBPS128;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
@@ -331,7 +330,7 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 			break;
 		case(0x50):
 			if(frame_props->mpeg_id == MPEG_v1 
-					&& frame_props->layer_discription == LAYER_I)
+				&& frame_props->layer_discription == LAYER_I)
 				frame_props->bitrate = KBPS160;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
@@ -345,7 +344,7 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 			break;
 		case(0x60):
 			if(frame_props->mpeg_id == MPEG_v1 
-					&& frame_props->layer_discription == LAYER_I)
+				&& frame_props->layer_discription == LAYER_I)
 				frame_props->bitrate = KBPS192;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
@@ -359,7 +358,7 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 			break;
 		case(0x70):
 			if(frame_props->mpeg_id == MPEG_v1 
-					&& frame_props->layer_discription == LAYER_I)
+				&& frame_props->layer_discription == LAYER_I)
 				frame_props->bitrate = KBPS224;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
@@ -373,7 +372,7 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 			break;
 		case(0x80):
 			if(frame_props->mpeg_id == MPEG_v1 
-					&& frame_props->layer_discription == LAYER_I)
+				&& frame_props->layer_discription == LAYER_I)
 				frame_props->bitrate = KBPS256;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_III)
@@ -387,7 +386,7 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 			break;
 		case(0x90):
 			if(frame_props->mpeg_id == MPEG_v1 
-					&& frame_props->layer_discription == LAYER_I)
+				&& frame_props->layer_discription == LAYER_I)
 				frame_props->bitrate = KBPS288;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_II)
@@ -403,7 +402,7 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 			break;
 		case(0xa0):
 			if(frame_props->mpeg_id == MPEG_v1 
-					&& frame_props->layer_discription == LAYER_I)
+				&& frame_props->layer_discription == LAYER_I)
 				frame_props->bitrate = KBPS320;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_II)
@@ -419,7 +418,7 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 			break;
 		case(0xb0):
 			if(frame_props->mpeg_id == MPEG_v1 
-					&& frame_props->layer_discription == LAYER_I)
+				&& frame_props->layer_discription == LAYER_I)
 				frame_props->bitrate = KBPS352;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_II)
@@ -435,7 +434,7 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 			break;
 		case(0xc0):
 			if(frame_props->mpeg_id == MPEG_v1 
-					&& frame_props->layer_discription == LAYER_I)
+				&& frame_props->layer_discription == LAYER_I)
 				frame_props->bitrate = KBPS384;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_II)
@@ -451,7 +450,7 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 			break;
 		case(0xd0):
 			if(frame_props->mpeg_id == MPEG_v1 
-					&& frame_props->layer_discription == LAYER_I)
+				&& frame_props->layer_discription == LAYER_I)
 				frame_props->bitrate = KBPS416;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_II)
@@ -467,7 +466,7 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 			break;
 		case(0xe0):
 			if(frame_props->mpeg_id == MPEG_v1 
-					&& frame_props->layer_discription == LAYER_I)
+				&& frame_props->layer_discription == LAYER_I)
 				frame_props->bitrate = KBPS448;
 			else if(frame_props->mpeg_id == MPEG_v1 
 					&& frame_props->layer_discription == LAYER_II)
@@ -491,11 +490,11 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 
 	if(frame_props->layer_discription == LAYER_I)
 		frame_props->length = (12 * frame_props->bitrate 
-				/ frame_props->samplerate + frame_props->padding_bit) * 4;
+		/ frame_props->samplerate + frame_props->padding_bit) * 4;
 	else if(frame_props->layer_discription == LAYER_III 
 			|| frame_props->layer_discription == LAYER_II)
 		frame_props->length = 144 * frame_props->bitrate 
-			/frame_props->samplerate + frame_props->padding_bit;
+		/ frame_props->samplerate + frame_props->padding_bit;
 
 	switch(*(file_buffer + frame_props->location + 3) & 0xc0) {
 		case 0x0:
@@ -559,8 +558,8 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 		frame_props->data = frame_props->location + 32;
 
 	int info = str_search_ptrn("Info", 
-			(file_buffer + frame_props->location), 
-			frame_props->length);
+							   (file_buffer + frame_props->location), 
+							   frame_props->length);
 	if(info >= 0) {
 		frame_props->status = INFO;
 		frame_props->data = info;
@@ -568,8 +567,8 @@ static void get_info(const char *file_buffer, frame_t *frame_props)
 	}
 
 	info = str_search_ptrn("Xing", 
-			(file_buffer + frame_props->location), 
-			frame_props->length);
+						   (file_buffer + frame_props->location), 
+						   frame_props->length);
 	if(info >= 0) {
 		frame_props->status = XING;
 		frame_props->data = info;
@@ -639,7 +638,7 @@ static int read_id3(const char *file_buffer)
 	printf("ID3 version: 2.%d.\n", file_buffer[3]);
 
 	for(int i = 0; i < 4; ++i) {
-		res = (res << 7) + ((unsigned char)file_buffer[i + 6] & 0x7f);
+		res = (res << 7) + ((uint8_t)file_buffer[i + 6] & 0x7f);
 	}
 
 	res += 10;
@@ -693,7 +692,7 @@ void play_mp3_file(const char *file_name)
 		perror("File open error.");
 		return;
 	}
-	char *file_buffer = malloc(sizeof(char) *file_stat.st_size);
+	char *file_buffer = malloc(sizeof(char) * file_stat.st_size);
 	if(fread((void*)file_buffer, 1, file_stat.st_size, audio_file) 
 			!= file_stat.st_size) {
 		fprintf(stderr, "File read error.\n");
@@ -708,8 +707,10 @@ void play_mp3_file(const char *file_name)
 	}
 
 	int frame_start = 0;
-	while((frame_start = search_frame(file_buffer + frame_props.location + frame_start, 
-					file_stat.st_size - frame_props.location)) >= 0) {
+	while((frame_start = search_frame(file_buffer 
+									+ frame_props.location + frame_start, 
+									file_stat.st_size - frame_props.location)) 
+																	>= 0) {
 		frame_props.location += frame_start;
 
 		get_info(file_buffer, &frame_props);
