@@ -645,14 +645,14 @@ static void read_side_info(const char *file_buffer, frame_t *frame_props)
 												+ frame_props->data
 												+ 1);
 		uint32_t part2_3_length = (be32toh(granule1) & 0xf000) >> 4;
-		printf("Granula 1 length: %d.\n", part2_3_length / 8);
+		printf("Granule 1 length: %d.\n", part2_3_length / 8);
 
-		uint32_t granule2 = *(uint32_t *)(file_buffer 
+		granule1 = *(uint32_t *)(file_buffer 
 												+ frame_props->data
 												+ 1
 												+ part2_3_length / 8);
-		part2_3_length = (be32toh(granule2) & 0xf000) >> 4;
-		printf("Granula 2 length: %d.\n", part2_3_length / 8);
+		part2_3_length = (be32toh(granule1) & 0xf000) >> 4;
+		printf("Granule 2 length: %d.\n", part2_3_length / 8);
 	}
 }
 
