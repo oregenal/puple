@@ -196,7 +196,7 @@ static void read_xing(const char *file_buffer, frame_t *frame_props)
 	putchar('\n');
 }
 
-static void get_info(const char *file_buffer, frame_t *frame_props)
+static void read_frame_header(const char *file_buffer, frame_t *frame_props)
 {
 	frame_props->status = OK;
 
@@ -628,6 +628,34 @@ static void play_frame(const char *file_buffer, frame_t *frame_props)
 	putchar('\n');
 }
 
+static void read_side_info(const char *file_buffer, frame_t *frame_props)
+{
+	if(frame_props->channel_mode == SINGLE_CHANNEL) {
+	} else {
+		uint32_t side_info = *(uint32_t *)(file_buffer + frame_props->data);
+		side_info = be32toh(side_info);
+
+		uint16_t main_data_begin = side_info >> 23;
+		printf("Main data negative offset: %d.\n", main_data_begin);
+
+		uint8_t scfsi = (uint8_t)(main_data_begin >> 12);
+		printf("Scfsi: %d.\n", scfsi);
+
+		uint32_t granule1 = *(uint32_t *)(file_buffer 
+												+ frame_props->data
+												+ 1);
+		uint32_t part2_3_length = (be32toh(granule1) & 0xf000) >> 4;
+		printf("Granula 1 length: %d.\n", part2_3_length / 8);
+
+		uint32_t granule2 = *(uint32_t *)(file_buffer 
+												+ frame_props->data
+												+ 1
+												+ part2_3_length / 8);
+		part2_3_length = (be32toh(granule2) & 0xf000) >> 4;
+		printf("Granula 2 length: %d.\n", part2_3_length / 8);
+	}
+}
+
 static int read_id3(const char *file_buffer)
 {
 	int res = 0;
@@ -713,10 +741,12 @@ void play_mp3_file(const char *file_name)
 																	>= 0) {
 		frame_props.location += frame_start;
 
-		get_info(file_buffer, &frame_props);
+		read_frame_header(file_buffer, &frame_props);
 
-		if(frame_props.status == OK)
+		if(frame_props.status == OK) {
+			read_side_info(file_buffer, &frame_props);
 			play_frame(file_buffer, &frame_props);
+		}
 
 		frame_props.location += frame_props.length;
 		frame_start = 0;
