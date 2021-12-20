@@ -115,6 +115,10 @@ typedef struct {
 	int channel_mode;
 	int intensity_stereo;
 	int ms_stereo;
+
+	/* side info */
+	uint16_t main_data_begin;
+	uint8_t scfsi;
 } frame_t;
 
 static int search_frame(const char* file_buffer, int size)
@@ -129,8 +133,6 @@ static int search_frame(const char* file_buffer, int size)
 
 static void read_xing(const char *file_buffer, frame_t *frame_props)
 {
-	/* TODO proper Xing Tag parsing */
-
 	if(frame_props->status == INFO)
 		printf("Info Tag found");
 
@@ -625,34 +627,51 @@ static void play_frame(const char *file_buffer, frame_t *frame_props)
 
 	printf("Padded: %d.\n", frame_props->padding_bit);
 	printf("Protection: %d.\n", frame_props->protection_bit);
+	printf("Main data negative offset: %d.\n", frame_props->main_data_begin);
+	printf("Scfsi: 0x%x.\n", frame_props->scfsi);
 	putchar('\n');
 }
 
 static void read_side_info(const char *file_buffer, frame_t *frame_props)
 {
-	if(frame_props->channel_mode == SINGLE_CHANNEL) {
-	} else {
-		uint32_t side_info = *(uint32_t *)(file_buffer + frame_props->data);
-		side_info = be32toh(side_info);
+	uint32_t side_info = *(uint32_t *)(file_buffer + frame_props->data);
+	side_info = be32toh(side_info);
 
-		uint16_t main_data_begin = side_info >> 23;
-		printf("Main data negative offset: %d.\n", main_data_begin);
+	/* First 9 bits - negative offset from SYNCWORD to main data. */
+	frame_props->main_data_begin = side_info >> 23;
 
-		uint8_t scfsi = (uint8_t)(main_data_begin >> 12);
-		printf("Scfsi: %d.\n", scfsi);
+	/* Skip private_bits field. Unused.
+	 * 5 - for Single channel mode
+	 * 3 - for others */
+	uint8_t private_bits = frame_props->channel_mode == SINGLE_CHANNEL ? 5 : 3;
 
-		uint32_t granule1 = *(uint32_t *)(file_buffer 
-												+ frame_props->data
-												+ 1);
-		uint32_t part2_3_length = (be32toh(granule1) & 0xf000) >> 4;
-		printf("Granule 1 length: %d.\n", part2_3_length / 8);
+	/* ScaleFactor Selection Information determines weather the same
+	 * scalefactors are transfered for both granules of not.
+	 * 4 bits for channel, 1 for each scalefactor band.
+	 * if bit is set - scale factor for the first granule reused in the second
+	 * if not - then each granule has its own scaling factors. */
+	frame_props->scfsi = (uint8_t)(side_info << (9 + private_bits) >> 
+								   (frame_props->channel_mode == SINGLE_CHANNEL 
+								   ? 28 : 24));
 
-		granule1 = *(uint32_t *)(file_buffer 
-												+ frame_props->data
-												+ 1
-												+ part2_3_length / 8);
-		part2_3_length = (be32toh(granule1) & 0xf000) >> 4;
-		printf("Granule 2 length: %d.\n", part2_3_length / 8);
+	for(int gr = 0; gr < 2; ++gr) {
+		if(frame_props->channel_mode == SINGLE_CHANNEL) {
+			/* Not implemented */
+		} else {
+
+			uint32_t granule1 = *(uint32_t *)(file_buffer 
+											  + frame_props->data
+											  + 1);
+			uint32_t part2_3_length = (be32toh(granule1) & 0xf000) >> 4;
+			printf("Granule 1 length: %d.\n", part2_3_length / 8);
+
+			granule1 = *(uint32_t *)(file_buffer 
+									 + frame_props->data
+									 + 1
+									 + part2_3_length / 8);
+			part2_3_length = (be32toh(granule1) & 0xf000) >> 4;
+			printf("Granule 2 length: %d.\n", part2_3_length / 8);
+		}
 	}
 }
 
