@@ -120,6 +120,13 @@ typedef struct {
 	uint16_t main_data_begin;
 	uint8_t scfsi[2];
 	uint32_t part2_3_length[2][2];
+	uint16_t big_value[2][2];
+	uint8_t global_gain[2][2];
+	uint8_t scalefac_compress[2][2];
+	uint8_t windows_switching_flag[2][2];
+	uint8_t block_type[2][2];
+	uint8_t mixed_block_flag[2][2];
+	uint8_t subblock_gain[2][2];
 } frame_t;
 
 static int search_frame(const char* file_buffer, int size)
@@ -660,11 +667,48 @@ static void read_side_info(const char *file_buffer, frame_t *frame_props)
 		frame_props->scfsi[ch] = 
 			(uint8_t)(side_info << (9 + private_bits + 4 * ch) >> 28);
 
-	/* for each granule int frame */
+	/* for each granule in frame */
 	for(int gr = 0; gr < 2; ++gr)
 		/* For each channel in granule */
 		for(int ch = 0; ch < channels; ++ch) {
+			/* 12 bits. Length of Scalefactors & Main data in bits. */
 			frame_props->part2_3_length[gr][ch] = 0;
+
+			/* 9 bits. Size of big_value partition. */
+			frame_props->big_value[gr][ch] = 0;
+
+			/* 8 bits. Quantization step size. */
+			frame_props->global_gain[gr][ch] = 0;
+
+			/* 4 bits. Derermine the size of slen1 & slen2. */
+			frame_props->scalefac_compress[gr][ch] = 0;
+
+			/* 1 bit. Indicate that not normal window is used. */
+			frame_props->windows_switching_flag[gr][ch] = 0;
+
+			if(frame_props->windows_switching_flag[gr][ch]) {
+				/* 2 bits. The type of window for particular granule. */
+				frame_props->block_type[gr][ch] = 0;
+
+				/* 1 bit. Indicate that two lowest subbands are transformed
+				 * using a normal window and remaining 30 are transformed
+				 * using the window specified by the block_type variable. */
+				frame_props->mixed_block_flag[gr][ch] = 0;
+
+				/* TODO: Proper side info parsing */
+
+				if(frame_props->windows_switching_flag[gr][ch]) {
+					/* 10 bits. */
+					frame_props->table_select[gr][ch] = 0;
+				} else {
+					/* 15 bits. */
+					frame_props->table_select[gr][ch] = 0;
+				}
+
+				if(frame_props->block_type[gr][ch] == 10)
+					/* 9 bits.  */
+					frame_props->subblock_gain[gr][ch] = 0;
+			}
 	}
 
 }
