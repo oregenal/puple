@@ -44,11 +44,16 @@ void read_side_info(const char *file_buffer, frame_t *frame_props)
 			/* 4 bits. Derermine the size of slen1 & slen2. */
 			frame_props->scalefac_compress[gr][ch] = 0;
 
-			/* 1 bit. Indicate that not normal window is used. */
+			/* 1 bit. Indicate that not normal window is used, 
+			 * & all info is in region0 & region1, region2 not used. */
 			frame_props->windows_switching_flag[gr][ch] = 0;
 
 			if(frame_props->windows_switching_flag[gr][ch]) {
-				/* 2 bits. The type of window for particular granule. */
+				/* 2 bits. The type of window for particular granule. 
+				 * 00 - forbidden.
+				 * 01 - start block.
+				 * 10 - 3 short windows.
+				 * 11 - end block. */
 				frame_props->block_type[gr][ch] = 0;
 
 				/* 1 bit. Indicate that two lowest subbands are transformed
