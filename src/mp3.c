@@ -7,6 +7,8 @@
 #define _DEFAULT_SOURCE
 
 #include "mp3.h"
+#include "id3.h"
+#include "xing.h"
 #include "str_search_ptrn.h"
 
 #include <stdint.h>
@@ -16,119 +18,6 @@
 #include <sys/stat.h>
 #include <endian.h>
 
-enum status {
-	OK,
-	INFO,
-	XING,
-	ERROR
-};
-
-enum mpeg_id {
-	MPEG_v1 = 1,
-	MPEG_v2 = 2
-};
-
-enum layer_discription {
-	LAYER_I = 1,
-	LAYER_II = 2,
-	LAYER_III = 3
-};
-
-enum protection_bit {
-	NOT_PROTECTED,
-	PROTECTED_BY_CRC
-};
-enum samplerate {
-	HZ16000 = 16000,
-	HZ22050 = 22050,
-	HZ32000 = 32000,
-	HZ24000 = 24000,
-	HZ44100 = 44100,
-	HZ48000 = 48000
-};
-enum padding_bit {
-	NOT_PADDED = 0,
-	PADDED = 1
-};
-
-enum bitrate {
-	FREE_KBPS = 0,
-	KBPS8 = 8000,
-	KBPS16 = 16000,
-	KBPS24 = 24000,
-	KBPS32 = 32000,
-	KBPS40 = 40000,
-	KBPS48 = 48000,
-	KBPS56 = 56000,
-	KBPS64 = 64000,
-	KBPS80 = 80000,
-	KBPS96 = 96000,
-	KBPS112 = 112000,
-	KBPS128 = 128000,
-	KBPS144 = 144000,
-	KBPS160 = 160000,
-	KBPS176 = 176000,
-	KBPS192 = 192000,
-	KBPS224 = 224000,
-	KBPS256 = 256000,
-	KBPS288 = 288000,
-	KBPS320 = 320000,
-	KBPS352 = 352000,
-	KBPS384 = 384000,
-	KBPS416 = 416000,
-	KBPS448 = 448000,
-	BAD_KBPS
-};
-
-enum channel_mode {
-	STEREO,
-	JOINT_STEREO,
-	DUAL_CHANNEL,
-	SINGLE_CHANNEL
-};
-
-enum intensity_stereo {
-	INTENSITY_OFF,
-	BANDS_4_31,
-	BANDS_8_31,
-	BANDS_12_31,
-	BANDS_16_31,
-	INTENSITY_ON
-};
-
-enum ms_stereo {
-	MS_OFF,
-	MS_ON
-};
-
-typedef struct {
-	int status;
-	int location;
-	int data;
-	int length;
-	int mpeg_id;
-	int layer_discription;
-	int protection_bit;
-	int bitrate;
-	int samplerate;
-	int padding_bit;
-	int channel_mode;
-	int intensity_stereo;
-	int ms_stereo;
-
-	/* side info */
-	uint16_t main_data_begin;
-	uint8_t scfsi[2];
-	uint32_t part2_3_length[2][2];
-	uint16_t big_value[2][2];
-	uint8_t global_gain[2][2];
-	uint8_t scalefac_compress[2][2];
-	uint8_t windows_switching_flag[2][2];
-	uint8_t block_type[2][2];
-	uint8_t mixed_block_flag[2][2];
-	uint8_t subblock_gain[2][2];
-} frame_t;
-
 static int search_frame(const char* file_buffer, int size)
 {
 	for(int i = 0; i < size; ++i) {
@@ -137,73 +26,6 @@ static int search_frame(const char* file_buffer, int size)
 				return i;
 	}
 	return -1;
-}
-
-static void read_xing(const char *file_buffer, frame_t *frame_props)
-{
-	if(frame_props->status == INFO)
-		printf("Info Tag found");
-
-	if(frame_props->status == XING)
-		printf("Xing Tag found");
-
-	printf(", but proper parser not implemented yet.\n\n");
-
-	printf("Encoder: ");
-	fwrite(file_buffer + frame_props->data 
-			+ frame_props->location + 120, 1, 9, stdout);
-	putchar('.');
-	putchar('\n');
-
-	uint8_t low_pass = *(file_buffer + frame_props->data 
-							   + frame_props->location + 130);
-	printf("Low pass filter: %d.\n", low_pass);
-
-	uint8_t min_bitrate = *(file_buffer + frame_props->data 
-								  + frame_props->location + 140);
-	printf("Minimal bitrate: %d.\n", min_bitrate);
-
-	uint16_t start_saples = *(uint16_t *)(file_buffer 
-										  + frame_props->data 
-										  + frame_props->location 
-										  + 141);
-	start_saples = be16toh(start_saples) >> 4;
-	printf("%d samples encoder delay. (samples added at begining)\n", 
-			start_saples);
-
-	uint16_t padded_saples = *(uint16_t *)(file_buffer 
-										   + frame_props->data 
-										   + frame_props->location 
-										   + 142);
-	padded_saples = be16toh(padded_saples) & 0x0fff;
-	printf("%d samples have been padded at the end of the file.\n", 
-			padded_saples);
-
-	uint32_t mp3_length = *(uint32_t *)(file_buffer 
-										+ frame_props->data 
-										+ frame_props->location
-										+ 148);
-	mp3_length = be32toh(mp3_length);
-	printf("Mp3 length: %d bytes.\n", mp3_length);
-
-	uint8_t misc = *(uint8_t *)(file_buffer + frame_props->data
-								+ frame_props->location + 144);
-	switch(misc & 0xc0) {
-		case(0x0):
-			printf("Original bitrate: 32kHz or less.\n");
-			break;
-		case(0x40):
-			printf("Original bitrate: 44.1kHz.\n");
-			break;
-		case(0x80):
-			printf("Original bitrate: 48kHz.\n");
-			break;
-		case(0xc0):
-			printf("Original bitrate: hegher than 48kHz.\n");
-			break;
-		default: {}
-	}
-	putchar('\n');
 }
 
 static void read_frame_header(const char *file_buffer, frame_t *frame_props)
@@ -711,51 +533,6 @@ static void read_side_info(const char *file_buffer, frame_t *frame_props)
 			}
 	}
 
-}
-
-static int read_id3(const char *file_buffer)
-{
-	int res = 0;
-
-	if(strncmp("ID3", file_buffer, 3) != 0)
-		return -1;
-
-	printf("ID3 version: 2.%d.\n", file_buffer[3]);
-
-	for(int i = 0; i < 4; ++i) {
-		res = (res << 7) + ((uint8_t)file_buffer[i + 6] & 0x7f);
-	}
-
-	res += 10;
-
-	int unsynchronisation = file_buffer[5] >> 7;
-	if(unsynchronisation) {
-		fprintf(stderr, "Unsynchronisation not implemented.\n");
-		return -1;
-	}
-
-	int extended_header = file_buffer[5] << 1 >> 7;
-	if(extended_header) {
-		fprintf(stderr, "Extended header not implemented.\n");
-		return -1;
-	}
-
-	int experimental_indicator = file_buffer[5] << 2 >> 7;
-	if(experimental_indicator) {
-		fprintf(stderr, "Experimental stage not implemented.\n");
-		return -1;
-	}
-
-	int footer_present = file_buffer[5] << 3 >> 7;
-	if(footer_present) {
-		fprintf(stderr, "Footer section not implemented.\n");
-		return -1;
-	}
-
-	printf("Lenght of ID3 header: %d.\n", res);
-	putchar('\n');
-
-	return res;
 }
 
 void play_mp3_file(const char *file_name)
