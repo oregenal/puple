@@ -63,18 +63,47 @@ void read_side_info(const char *file_buffer, frame_t *frame_props)
 
 				/* TODO: Proper side info parsing */
 
-				if(frame_props->windows_switching_flag[gr][ch]) {
-					/* 10 bits. */
-					frame_props->table_select[gr][ch] = 0;
-				} else {
-					/* 15 bits. */
-					frame_props->table_select[gr][ch] = 0;
+				for(int region = 0; region < 2; ++region) {
+					/* 5 bits. Determine which one of 32 possible Huffman 
+					 * tables is in use, for each region/channel/granule. */
+					frame_props->table_select[gr][ch][region] = 0;
 				}
 
-				if(frame_props->block_type[gr][ch] == 10)
-					/* 9 bits.  */
-					frame_props->subblock_gain[gr][ch] = 0;
+				/* TODO: If condition mean "3 short windows" type 
+				 * windows_switching_flag */
+
+				for(int block = 0; block < 3; ++block)
+					/* 3 bits. Indicate gain offset from global_gain 
+					 * for each short block.
+					 * Used only when block_type is 3 short windows,
+					 * butt always transmitted. */
+					frame_props->subblock_gain[gr][ch][block] = 0;
+			} else {
+				for(int region = 0; region < 3; ++region) {
+					/* 5 bits. Determine which one of 32 possible Huffman 
+					 * tables is in use, for each region/channel/granule. */
+					frame_props->table_select[gr][ch][region] = 0;
+				}
 			}
+
+			/* 4 bits. One less, then the number of scalefactor bands
+			 * in region0. */
+			frame_props->region0_count[gr][ch] = 0;
+
+			/* 3 bits. One less, then the number of scalefactor bands
+			 * in region1. */
+			frame_props->region1_count[gr][ch] = 0;
+
+			/* 1 bit. Additional high frieqensy amplification.
+			 * Not used if "3 short windows. */
+			frame_props->preflag[gr][ch] = 0;
+
+			/* 1 bit. Quantization step size version. */
+			frame_props->scalefac_scale[gr][ch] = 0;
+
+			/* 1bit. Which one of 2 Huffman code tables for count1 region to
+			 * apply. */
+			frame_props->count1table_select[gr][ch] = 0;
 	}
 
 }

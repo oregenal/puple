@@ -113,8 +113,13 @@ typedef struct {
 	uint8_t windows_switching_flag[2][2];
 	uint8_t block_type[2][2];
 	uint8_t mixed_block_flag[2][2];
-	uint8_t subblock_gain[2][2];
-	uint16_t table_select[2][2];
+	uint8_t subblock_gain[2][2][3];
+	uint16_t table_select[2][2][3];
+	uint8_t region0_count[2][2];
+	uint8_t region1_count[2][2];
+	uint8_t preflag[2][2];
+	uint8_t scalefac_scale[2][2];
+	uint8_t count1table_select[2][2];
 } frame_t;
 
 void play_mp3_file(const char *);
