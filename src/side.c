@@ -2,7 +2,37 @@
 
 #include "side.h"
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <endian.h>
+
+static int parse_bites(const char *file_buffer, int *index, int amount)
+{
+	int first_byte = *index / 8;
+	int first_bit = *index % 8;
+	int last_byte = (*index + amount) / 8;
+	int last_bit = (*index + amount) % 8;
+
+	int size = last_byte - first_byte + 1;
+	if(size > 4) {
+		fprintf(stderr, "Error in parsing Side info section");
+		exit(EXIT_FAILURE);
+	}
+
+	uint8_t value[size];
+
+	for(int i = 0; i < size; ++i) {
+		value[i] = file_buffer[i + first_byte];
+	}
+
+	int res = be32toh(*(int *)value);
+	res <<= first_bit + 8 * (4 - size);
+	res >>= first_bit + 8 * (4 - size) + 8 - last_bit;
+
+	*index = *index + amount;
+
+	return res;
+}
 
 void read_side_info(const char *file_buffer, frame_t *frame_props)
 {
@@ -68,9 +98,6 @@ void read_side_info(const char *file_buffer, frame_t *frame_props)
 					 * tables is in use, for each region/channel/granule. */
 					frame_props->table_select[gr][ch][region] = 0;
 				}
-
-				/* TODO: If condition mean "3 short windows" type 
-				 * windows_switching_flag */
 
 				for(int block = 0; block < 3; ++block)
 					/* 3 bits. Indicate gain offset from global_gain 
