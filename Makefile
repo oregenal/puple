@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -Werror -std=c11 -pedantic -ggdb
+CFLAGS=-Wall -Werror -ftrapv -std=c11 -pedantic -ggdb
 LIBS=
 PKGS=libpulse-simple
 

@@ -26,7 +26,7 @@ static int search_frame(const char* file_buffer, int size)
 }
 
 
-static void play_frame(const char *file_buffer, frame_t *frame_props)
+static void print_frame_info(const char *file_buffer, frame_t *frame_props)
 {
 	printf("Frame position: %d\n", frame_props->location);
 	printf("Frame length: %d.\n", frame_props->length);
@@ -139,7 +139,7 @@ void play_mp3_file(const char *file_name)
 
 		if(frame_props.status == OK) {
 			read_side_info(file_buffer, &frame_props);
-			play_frame(file_buffer, &frame_props);
+			print_frame_info(file_buffer, &frame_props);
 		}
 
 		frame_props.location += frame_props.length;

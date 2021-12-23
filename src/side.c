@@ -6,12 +6,13 @@
 #include <stdlib.h>
 #include <endian.h>
 
-static unsigned int parse_bites(const char *file_buffer, int *index, int amount)
+static unsigned int 
+parse_bites(const char *file_buffer, int *index, int amount)
 {
 	unsigned int first_byte = *index / 8;
 	unsigned int first_bit = *index % 8;
 	unsigned int last_byte = (*index + amount) / 8;
-	unsigned int last_bit = (*index + amount) % 8;
+	unsigned int next_bites = (*index + amount) % 8;
 
 	unsigned int size = last_byte - first_byte + 1;
 	if(size > 4) {
@@ -26,7 +27,7 @@ static unsigned int parse_bites(const char *file_buffer, int *index, int amount)
 	}
 
 	res <<= first_bit + 8 * (4 - size);
-	res >>= first_bit + 8 * (4 - size) + 8 - last_bit;
+	res >>= first_bit + 8 * (4 - size) + 8 - next_bites;
 
 	*index += amount;
 
@@ -90,19 +91,22 @@ void read_side_info(const char *file_buffer, frame_t *frame_props)
 				 * 10 - 3 short windows.
 				 * 11 - end block. */
 				frame_props->block_type[gr][ch] = 
-					parse_bites(file_buffer + frame_props->data, &bit_counter, 2);
+					parse_bites(file_buffer + frame_props->data, 
+								&bit_counter, 2);
 
 				/* 1 bit. Indicate that two lowest subbands are transformed
 				 * using a normal window and remaining 30 are transformed
 				 * using the window specified by the block_type variable. */
 				frame_props->mixed_block_flag[gr][ch] = 
-					parse_bites(file_buffer + frame_props->data, &bit_counter, 1);
+					parse_bites(file_buffer + frame_props->data, 
+								&bit_counter, 1);
 
 				for(int region = 0; region < 2; ++region) {
 					/* 5 bits. Determine which one of 32 possible Huffman 
 					 * tables is in use, for each region/channel/granule. */
 					frame_props->table_select[gr][ch][region] = 
-						parse_bites(file_buffer + frame_props->data, &bit_counter, 5);
+						parse_bites(file_buffer + frame_props->data, 
+									&bit_counter, 5);
 				}
 
 				for(int block = 0; block < 3; ++block)
@@ -111,13 +115,15 @@ void read_side_info(const char *file_buffer, frame_t *frame_props)
 					 * Used only when block_type is 3 short windows,
 					 * butt always transmitted. */
 					frame_props->subblock_gain[gr][ch][block] = 
-						parse_bites(file_buffer + frame_props->data, &bit_counter, 3);
+						parse_bites(file_buffer + frame_props->data, 
+									&bit_counter, 3);
 			} else {
 				for(int region = 0; region < 3; ++region) {
 					/* 5 bits. Determine which one of 32 possible Huffman 
 					 * tables is in use, for each region/channel/granule. */
 					frame_props->table_select[gr][ch][region] = 
-						parse_bites(file_buffer + frame_props->data, &bit_counter, 5);
+						parse_bites(file_buffer + frame_props->data, 
+									&bit_counter, 5);
 				}
 			}
 
