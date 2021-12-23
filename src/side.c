@@ -25,7 +25,6 @@ static unsigned int parse_bites(const char *file_buffer, int *index, int amount)
 		res = (res << 8) | (unsigned char)file_buffer[i + first_byte];
 	}
 
-	//res = be32toh(res);
 	res <<= first_bit + 8 * (4 - size);
 	res >>= first_bit + 8 * (4 - size) + 8 - last_bit;
 
