@@ -90,6 +90,11 @@ static void print_frame_info(const char *file_buffer, frame_t *frame_props)
 					gr,
 					ch + 1, 
 					frame_props->part2_3_length[gr][ch]);
+			
+			printf("Size of big_values partition for granule %d channel %d: %u.\n",
+					gr,
+					ch + 1,
+					frame_props->big_value[gr][ch]);
 		}
 	
 	putchar('\n');
