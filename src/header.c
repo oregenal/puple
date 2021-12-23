@@ -360,7 +360,7 @@ void read_frame_header(const char *file_buffer, frame_t *frame_props)
 	}
 
 	if(frame_props->protection_bit == PROTECTED_BY_CRC)
-		frame_props->data = frame_props->location + 4 + 2;
+		frame_props->data = frame_props->location + 4 + 16;
 	else
 		frame_props->data = frame_props->location + 4;
 

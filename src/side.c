@@ -6,26 +6,26 @@
 #include <stdlib.h>
 #include <endian.h>
 
-static int parse_bites(const char *file_buffer, int *index, int amount)
+static unsigned int parse_bites(const char *file_buffer, int *index, int amount)
 {
-	int first_byte = *index / 8;
-	int first_bit = *index % 8;
-	int last_byte = (*index + amount) / 8;
-	int last_bit = (*index + amount) % 8;
+	unsigned int first_byte = *index / 8;
+	unsigned int first_bit = *index % 8;
+	unsigned int last_byte = (*index + amount) / 8;
+	unsigned int last_bit = (*index + amount) % 8;
 
-	int size = last_byte - first_byte + 1;
+	unsigned int size = last_byte - first_byte + 1;
 	if(size > 4) {
 		fprintf(stderr, "Error in parsing Side info section");
 		exit(EXIT_FAILURE);
 	}
 
-	int res = 0;
+	unsigned int res = 0;
 
-	for(int i = 0; i < size; ++i) {
-		res = (res << 8) | file_buffer[i];
+	for(unsigned int i = 0; i < size; ++i) {
+		res = (res << 8) | (unsigned char)file_buffer[i + first_byte];
 	}
 
-	res = be32toh(res);
+	//res = be32toh(res);
 	res <<= first_bit + 8 * (4 - size);
 	res >>= first_bit + 8 * (4 - size) + 8 - last_bit;
 

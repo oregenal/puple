@@ -75,11 +75,22 @@ static void play_frame(const char *file_buffer, frame_t *frame_props)
 
 	printf("Padded: %d.\n", frame_props->padding_bit);
 	printf("Protection: %d.\n", frame_props->protection_bit);
-	printf("Main data negative offset: %d.\n", frame_props->main_data_begin);
+	printf("Main data negative offset: %u.\n", frame_props->main_data_begin);
 	for(int ch = 0; 
 			ch < (frame_props->channel_mode == SINGLE_CHANNEL ? 1 : 2)
-			; ++ch)
-		printf("Scfsi for channel %d: 0x%x.\n", ch + 1, frame_props->scfsi[ch]);
+			; ++ch) 
+		printf("Scfsi for channel %d: 0x%x.\n", ch + 1, 
+				frame_props->scfsi[ch]);
+	for(int gr = 0; gr < 2; ++gr)
+		for(int ch = 0;
+				ch < (frame_props->channel_mode == SINGLE_CHANNEL ? 1 : 2);
+				++ch) {
+			printf("Part2_3_length in bits for granule %d channel %d: %u.\n", 
+					gr,
+					ch + 1, 
+					frame_props->part2_3_length[gr][ch]);
+		}
+	
 	putchar('\n');
 }
 
