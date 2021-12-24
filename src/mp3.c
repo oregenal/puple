@@ -10,6 +10,7 @@
 #include "id3.h"
 #include "header.h"
 #include "side.h"
+#include "play_frame.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -89,6 +90,11 @@ static void print_frame_info(const char *file_buffer, frame_t *frame_props)
 					gr,
 					ch + 1, 
 					frame_props->part2_3_length[gr][ch]);
+			
+			printf("Size of big_values partition for granule %d channel %d: %u.\n",
+					gr,
+					ch + 1,
+					frame_props->big_value[gr][ch]);
 		}
 	
 	putchar('\n');
@@ -140,6 +146,7 @@ void play_mp3_file(const char *file_name)
 		if(frame_props.status == OK) {
 			read_side_info(file_buffer, &frame_props);
 			print_frame_info(file_buffer, &frame_props);
+			play_frame(file_buffer, &frame_props);
 		}
 
 		frame_props.location += frame_props.length;
