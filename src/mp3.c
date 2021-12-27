@@ -16,6 +16,17 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
+static void print_list(const struct previous_frame_length *previous_frame)
+{
+	if(previous_frame != NULL) {
+		printf("Prevoius frame length %d.\n", 
+				previous_frame->length);
+
+		print_list(previous_frame->prev);
+	}
+	else return;
+}
+
 static int search_frame(const char* file_buffer, int size)
 {
 	for(int i = 0; i < size; ++i) {
@@ -83,9 +94,11 @@ static void print_frame_info(const char *file_buffer, frame_t *frame_props)
 		printf("Scfsi for channel %d: 0x%x.\n", ch + 1, 
 				frame_props->scfsi[ch]);
 
-	if(frame_props->previous_frame != NULL)
-		printf("Prevoius frame length %d.\n", 
-				frame_props->previous_frame->length);
+	//if(frame_props->previous_frame != NULL)
+	//	printf("Prevoius frame length %d.\n", 
+	//			frame_props->previous_frame->length);
+
+	print_list(frame_props->previous_frame);
 
 	//for(int gr = 0; gr < 2; ++gr)
 	//	for(int ch = 0;
@@ -153,10 +166,10 @@ void play_mp3_file(const char *file_name)
 			read_side_info(file_buffer, &frame_props);
 			print_frame_info(file_buffer, &frame_props);
 
-			struct previous_frame_length previous_frame;
-			previous_frame.length = frame_props.length;
-			previous_frame.prev = frame_props.previous_frame;
-			frame_props.previous_frame = &previous_frame;
+			struct previous_frame_length *tmp = malloc(sizeof(struct previous_frame_length));
+			tmp->length = frame_props.length;
+			tmp->prev = frame_props.previous_frame;
+			frame_props.previous_frame = tmp;
 
 			play_frame(file_buffer, &frame_props);
 		}
