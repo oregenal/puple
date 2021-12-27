@@ -16,13 +16,14 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-static void print_list(const struct previous_frame_length *previous_frame)
+static void print_list(const struct previous_frame_length *previous_frame, int counter)
 {
-	if(previous_frame != NULL) {
+	if(previous_frame != NULL && counter < 9) {
 		printf("Prevoius frame length %d.\n", 
 				previous_frame->length);
+		++counter;
 
-		print_list(previous_frame->prev);
+		print_list(previous_frame->prev, counter);
 	}
 	else return;
 }
@@ -98,7 +99,8 @@ static void print_frame_info(const char *file_buffer, frame_t *frame_props)
 	//	printf("Prevoius frame length %d.\n", 
 	//			frame_props->previous_frame->length);
 
-	print_list(frame_props->previous_frame);
+	int counter = 0;
+	print_list(frame_props->previous_frame, counter);
 
 	//for(int gr = 0; gr < 2; ++gr)
 	//	for(int ch = 0;
