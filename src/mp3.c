@@ -82,20 +82,21 @@ static void print_frame_info(const char *file_buffer, frame_t *frame_props)
 			; ++ch) 
 		printf("Scfsi for channel %d: 0x%x.\n", ch + 1, 
 				frame_props->scfsi[ch]);
-	for(int gr = 0; gr < 2; ++gr)
-		for(int ch = 0;
-				ch < (frame_props->channel_mode == SINGLE_CHANNEL ? 1 : 2);
-				++ch) {
-			printf("Part2_3_length in bits for granule %d channel %d: %u.\n", 
-					gr,
-					ch + 1, 
-					frame_props->part2_3_length[gr][ch]);
-			
-			printf("Size of big_values partition for granule %d channel %d: %u.\n",
-					gr,
-					ch + 1,
-					frame_props->big_value[gr][ch]);
-		}
+	printf("Prevoius frame length %d.\n", frame_props->previous_frame->length);
+	//for(int gr = 0; gr < 2; ++gr)
+	//	for(int ch = 0;
+	//			ch < (frame_props->channel_mode == SINGLE_CHANNEL ? 1 : 2);
+	//			++ch) {
+	//		printf("Part2_3_length in bits for granule %d channel %d: %u.\n", 
+	//				gr,
+	//				ch + 1, 
+	//				frame_props->part2_3_length[gr][ch]);
+	//		
+	//		printf("Size of big_values partition for granule %d channel %d: %u.\n",
+	//				gr,
+	//				ch + 1,
+	//				frame_props->big_value[gr][ch]);
+	//	}
 	
 	putchar('\n');
 }
@@ -151,6 +152,10 @@ void play_mp3_file(const char *file_name)
 
 		frame_props.location += frame_props.length;
 		frame_start = 0;
+
+		struct previous_frame_length previous_frame;
+		previous_frame.length = frame_props.length;
+		frame_props.previous_frame = &previous_frame;
 	}
 
 	printf("Not implemented.\n");

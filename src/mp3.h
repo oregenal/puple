@@ -88,6 +88,11 @@ enum ms_stereo {
 	MS_ON
 };
 
+struct previous_frame_length {
+	int length;
+	struct previous_frame_length *prev;
+};
+
 typedef struct {
 	int status;
 	int location;
@@ -102,6 +107,7 @@ typedef struct {
 	int channel_mode;
 	int intensity_stereo;
 	int ms_stereo;
+	struct previous_frame_length *previous_frame;
 
 	/* side info */
 	uint16_t main_data_begin;
