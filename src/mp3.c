@@ -16,7 +16,8 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-static void print_list(const struct previous_frame_length *previous_frame, int counter)
+static void print_list(const struct previous_frame_length *previous_frame, 
+					   int counter)
 {
 	if(previous_frame != NULL && counter < 9) {
 		printf("Prevoius frame length %d.\n", 
@@ -37,7 +38,6 @@ static int search_frame(const char* file_buffer, int size)
 	}
 	return -1;
 }
-
 
 static void print_frame_info(const char *file_buffer, frame_t *frame_props)
 {
@@ -168,7 +168,8 @@ void play_mp3_file(const char *file_name)
 			read_side_info(file_buffer, &frame_props);
 			print_frame_info(file_buffer, &frame_props);
 
-			struct previous_frame_length *tmp = malloc(sizeof(struct previous_frame_length));
+			struct previous_frame_length *tmp = 
+				malloc(sizeof(struct previous_frame_length));
 			tmp->length = frame_props.length;
 			tmp->prev = frame_props.previous_frame;
 			frame_props.previous_frame = tmp;
@@ -181,6 +182,12 @@ void play_mp3_file(const char *file_name)
 	}
 
 	printf("Not implemented.\n");
+
+	while(frame_props.previous_frame != NULL) {
+		struct previous_frame_length *tmp = frame_props.previous_frame;
+		frame_props.previous_frame = frame_props.previous_frame->prev;
+		free(tmp);
+	}
 
 	free(file_buffer);
 	fclose(audio_file);
