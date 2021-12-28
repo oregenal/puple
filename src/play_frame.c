@@ -7,24 +7,67 @@ static const uint8_t slen[2][16] =
 						{{0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4},
 						{0, 1, 2, 3, 0, 1, 2, 3, 1, 2, 3, 1, 2, 3, 2, 3}};
 
-void play_frame(const char *file_buffer, frame_t *frame_props)
+static unsigned char *unpack_main_data(const char *file_buffer, 
+									   frame_t *frame_props)
 {
-	unsigned char *main_data;
 	int channels = frame_props->channel_mode == SINGLE_CHANNEL ? 1 : 2;
 
 	int header_len = 4 + (channels == 1 ? 17 : 32);
 	header_len += frame_props->protection_bit == PROTECTED_BY_CRC ? 2 : 0;
 
 	/* Unpack main data */
-	if(frame_props->main_data_begin == 0) {
-		/* If main_data_begin = 0, main data started right after heade +
-		 * side_info + crc if set */
-		main_data = malloc(frame_props->length - header_len);
-		memcpy(main_data, file_buffer + frame_props->location + header_len, 
-				frame_props->length - header_len);
-	} else {
-		main_data = malloc(frame_props->length - header_len);
+	/* If main_data_begin = 0, main data started right after heade +
+	 * side_info + crc if set */
+	int main_data_size = frame_props->length - header_len;
+
+	unsigned char *main_data = malloc(main_data_size);
+
+	memcpy(main_data, file_buffer + frame_props->location + header_len, 
+			main_data_size);
+
+	if(frame_props->main_data_begin != 0) {
+		/* If offset is set */
+		int offset = frame_props->main_data_begin;
+		int buffer_offset = 0;
+		struct previous_frame_length *prev_frame = frame_props->previous_frame;
+		int prev_main_data_size = main_data_size;
+
+		while(prev_frame->length - header_len < offset) {
+			buffer_offset += prev_frame->length;
+			main_data_size += prev_frame->length - header_len;
+
+			main_data = realloc(main_data, main_data_size);
+
+			memmove(main_data + prev_frame->length - header_len,
+					main_data, prev_main_data_size);
+
+			memcpy(main_data, 
+				   file_buffer + frame_props->location 
+					   - buffer_offset + header_len, 
+				   prev_frame->length - header_len);
+
+			offset -= prev_frame->length - header_len;
+			prev_frame = prev_frame->prev;
+		}
+
+		main_data_size += offset;
+		main_data = realloc(main_data, main_data_size);
+
+		memmove(main_data + offset, main_data, prev_main_data_size);
+
+		memcpy(main_data, 
+			   file_buffer + frame_props->location - buffer_offset - offset, 
+			   offset);
 	}
+
+	return main_data;
+}
+
+void play_frame(const char *file_buffer, frame_t *frame_props)
+{
+	unsigned char *main_data = unpack_main_data(file_buffer, frame_props);
+
+	int channels = frame_props->channel_mode == SINGLE_CHANNEL ? 1 : 2;
 
 	for(int gr = 0; gr < 2; ++gr)
 		for(int ch = 0; ch < channels; ++ch) {
