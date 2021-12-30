@@ -2,6 +2,8 @@
  * https://habr.com/ru/post/103635 
  * https://www.fcreyf.com/article/mp3-decoding-in-c++
  * http://gabriel.mp3-tech.org/mp3infotag.html
+ * http://www.co-bw.com/Audio_MP_decoder.htm
+ * https://arstechnica.com/features/2007/10/the-audiofile-understanding-mp3-compression/3/
  * */
 
 #define _DEFAULT_SOURCE

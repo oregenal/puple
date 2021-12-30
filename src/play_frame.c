@@ -63,6 +63,11 @@ static unsigned char *unpack_main_data(const char *file_buffer,
 	return main_data;
 }
 
+void get_scalefactors(const unsigned char *main_data, 
+					  int gr, int ch, int bit_counter)
+{
+}
+
 void play_frame(const char *file_buffer, frame_t *frame_props)
 {
 	unsigned char *main_data = unpack_main_data(file_buffer, frame_props);
@@ -72,6 +77,7 @@ void play_frame(const char *file_buffer, frame_t *frame_props)
 	for(int gr = 0; gr < 2; ++gr)
 		for(int ch = 0; ch < channels; ++ch) {
 			unsigned int part2_length = 0;
+			int bit_counter = 0;
 			uint8_t scf_com = frame_props->scalefac_compress[gr][ch];
 
 			/* Decoding scalefactors */
@@ -86,6 +92,8 @@ void play_frame(const char *file_buffer, frame_t *frame_props)
 
 			/* TODO: remove dummy part2_length */
 			(void)part2_length;
+
+			get_scalefactors(main_data, gr, ch, bit_counter);
 		}
 
 	free(main_data);
