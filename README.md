@@ -21,3 +21,7 @@ To play all files in directory:
 ```bash
 # ./puple dir_name/
 ```
+
+## MP3
+
+Due to complicated MP3 compression method, it's implementation is delayed.
